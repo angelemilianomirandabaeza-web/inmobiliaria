@@ -1,66 +1,286 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# 🏠 InmoTech - Plataforma Inmobiliaria
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Plataforma inmobiliaria completa desarrollada con **Laravel 11** y **MySQL**. Sistema integral con paneles diferenciados para **administradores, agentes y clientes**, búsqueda avanzada con autocompletado, mapas interactivos, subida real de imágenes, dark mode, notificaciones por email y mucho más.
 
-## About Laravel
+> **Proyecto Segundo Parcial** | Equipo de 5 personas
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## ✨ Características principales
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### Portal público
+- 🎨 **Hero espectacular** con gradientes animados, mesh gradient y blobs flotantes
+- 🔍 **Búsqueda con autocompletado AJAX** en tiempo real (propiedades, colonias, ciudades)
+- 🏘️ Catálogo con filtros avanzados (tipo, operación, precio, habitaciones, baños, ubicación)
+- 📍 **Mapa interactivo** con Leaflet en cada propiedad (gratis, sin API key)
+- 💰 **Calculadora de hipoteca** integrada
+- ⚖️ **Comparador** de hasta 3 propiedades lado a lado
+- 📷 Galería de imágenes con carrusel
+- ⭐ Propiedades destacadas con badges premium
+- 💬 Formulario de contacto que **envía email** al agente
 
-## Learning Laravel
+### Panel Cliente
+- ❤️ Lista de favoritos con paginación
+- 📅 Visitas programadas
+- 🔔 Alertas de búsqueda personalizadas
+- 📊 Dashboard con estadísticas personales
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
+### Panel Agente
+- 🏠 CRUD completo de propiedades
+- 📤 **Subida real de imágenes** con drag & drop (hasta 10 imágenes, preview en tiempo real)
+- 📈 Dashboard con métricas de ventas
+- 📅 Agenda de visitas
+- 🎯 Pipeline de ventas
+- 💬 Gestión de leads
 
-You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
+### Panel Administrador
+- ✅ Aprobación/rechazo de propiedades
+- 👥 Gestión de usuarios y agentes
+- 📊 Dashboard con gráficas (Chart.js)
+- 💼 Gestión de planes de publicación
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### UX Premium
+- 🌙 **Dark mode** con toggle persistente (localStorage)
+- ✨ **Animaciones AOS** en scroll
+- 🎴 Cards con **tilt 3D** (Vanilla Tilt)
+- 🔄 **Carousel de testimonios** (Splide)
+- ⌨️ Texto que se escribe solo (Typed.js)
+- 🔢 Contadores animados (CountUp.js)
+- 🎯 Cursor personalizado en desktop
+- 📊 Barra de progreso de scroll
+- 🎨 Glassmorphism, gradientes animados, marquees infinitos
 
-## Laravel Sponsors
+---
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+## 🛠️ Tecnologías
 
-### Premium Partners
+| Stack | Tecnología |
+|---|---|
+| **Backend** | Laravel 11.x |
+| **Lenguaje** | PHP 8.3 |
+| **Base de datos** | MySQL 8.1 |
+| **Frontend** | Blade + Bootstrap 5.3 |
+| **Mapas** | Leaflet + OpenStreetMap (gratis) |
+| **Tipografía** | Bricolage Grotesque + Inter (Google Fonts) |
+| **Animaciones** | AOS, Vanilla Tilt, Typed.js, CountUp.js |
+| **Carouseles** | Splide.js |
+| **Iconos** | Font Awesome 6 |
+| **Storage** | Laravel Storage (filesystem público) |
+| **Mail** | Laravel Mail (driver `log` por defecto) |
 
-- **[Vehikl](https://vehikl.com/)**
-- **[Tighten Co.](https://tighten.co)**
-- **[WebReinvent](https://webreinvent.com/)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
-- **[Cyber-Duck](https://cyber-duck.co.uk)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Jump24](https://jump24.co.uk)**
-- **[Redberry](https://redberry.international/laravel/)**
-- **[Active Logic](https://activelogic.com)**
-- **[byte5](https://byte5.de)**
-- **[OP.GG](https://op.gg)**
+---
 
-## Contributing
+## 📦 Requisitos
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+- **PHP 8.2+** (recomendado 8.3)
+- **Composer 2.x**
+- **MySQL 8+** o **MariaDB 10.6+**
+- WAMP / XAMPP / LAMP (recomendado: **WAMP** en Windows)
 
-## Code of Conduct
+---
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+## 🚀 Instalación paso a paso
 
-## Security Vulnerabilities
+### 1. Clonar el repositorio
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+```bash
+git clone https://github.com/angelemilianomirandabaeza-web/inmobiliaria.git
+cd inmobiliaria
+```
 
-## License
+### 2. Instalar dependencias de PHP
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+```bash
+composer install
+```
+
+> Si tu PHP del PATH es viejo (< 8.2), usa el de WAMP:
+> ```powershell
+> C:\wamp64\bin\php\php8.3.14\php.exe C:\ProgramData\ComposerSetup\bin\composer.phar install
+> ```
+
+### 3. Configurar variables de entorno
+
+```bash
+cp .env.example .env
+```
+
+Edita `.env` con tus datos:
+
+```env
+APP_NAME="InmoTech"
+APP_ENV=local
+APP_DEBUG=true
+APP_URL=http://localhost:8000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=inmobiliaria
+DB_USERNAME=root
+DB_PASSWORD=
+
+MAIL_MAILER=log
+```
+
+### 4. Generar la clave de la aplicación
+
+```bash
+php artisan key:generate
+```
+
+### 5. Crear la base de datos
+
+```bash
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS inmobiliaria CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;"
+```
+
+O desde phpMyAdmin: crea una BD llamada `inmobiliaria`.
+
+### 6. Migrar y poblar la BD
+
+```bash
+php artisan migrate:fresh --seed
+```
+
+Esto crea **24+ tablas** y carga datos de prueba.
+
+### 7. Crear el symlink de storage
+
+```bash
+php artisan storage:link
+```
+
+### 8. Levantar el servidor
+
+```bash
+php artisan serve
+```
+
+Abre **http://127.0.0.1:8000** en el navegador.
+
+---
+
+## 🔑 Cuentas de prueba
+
+Todas las cuentas usan la contraseña: **`password`**
+
+| Rol | Email |
+|---|---|
+| 👑 Admin | `admin@inmobiliaria.com` |
+| 🏢 Agente | `carlos@inmobiliaria.com` |
+| 🏢 Agente | `maria@inmobiliaria.com` |
+| 🏢 Agente | `jorge@inmobiliaria.com` |
+| 👤 Cliente | `ana@cliente.com` |
+| 👤 Cliente | `luis@cliente.com` |
+| 👤 Cliente | `patricia@cliente.com` |
+
+---
+
+## 🪟 Manual rápido (Windows con WAMP)
+
+### Iniciar el servidor cada vez
+
+1. Abre **WAMP** y verifica que el icono esté **verde** (Apache + MySQL corriendo)
+2. Abre **PowerShell** y ejecuta:
+
+```powershell
+cd C:\proyectos\inmobiliaria
+C:\wamp64\bin\php\php8.3.14\php.exe artisan serve
+```
+
+3. Abre el navegador en **http://127.0.0.1:8000**
+4. Para detener el servidor: presiona **Ctrl + C** en PowerShell
+
+### Si la BD está vacía
+
+```powershell
+C:\wamp64\bin\php\php8.3.14\php.exe artisan migrate:fresh --seed
+```
+
+### Si ves errores de "vendor/autoload.php"
+
+```powershell
+C:\wamp64\bin\php\php8.3.14\php.exe C:\ProgramData\ComposerSetup\bin\composer.phar dump-autoload
+```
+
+### Si las imágenes subidas no se ven
+
+```powershell
+C:\wamp64\bin\php\php8.3.14\php.exe artisan storage:link
+```
+
+### Limpiar todas las caches
+
+```powershell
+C:\wamp64\bin\php\php8.3.14\php.exe artisan optimize:clear
+```
+
+---
+
+## 📂 Estructura del proyecto
+
+```
+inmobiliaria/
+├── app/
+│   ├── Http/
+│   │   ├── Controllers/
+│   │   │   ├── Admin/        → Panel administrador
+│   │   │   ├── Agente/       → Panel agente
+│   │   │   ├── Api/          → API autocompletado
+│   │   │   ├── Cliente/      → Panel cliente
+│   │   │   ├── Public/       → Vistas públicas
+│   │   │   └── AuthController.php
+│   │   └── Middleware/CheckRole.php
+│   ├── Mail/                 → Mailables (notificaciones)
+│   └── Models/               → 23 modelos Eloquent
+├── database/
+│   ├── migrations/           → 13 migraciones (24+ tablas)
+│   └── seeders/              → 6 seeders
+├── resources/views/
+│   ├── layouts/app.blade.php → Layout maestro
+│   ├── public/               → Home, búsqueda, ficha, comparador
+│   ├── auth/                 → Login, registro
+│   ├── admin/                → Dashboard, aprobación
+│   ├── agente/               → Dashboard, CRUD propiedades
+│   ├── cliente/              → Dashboard, favoritos
+│   └── emails/               → Templates HTML de email
+└── routes/web.php            → Definición de rutas
+```
+
+---
+
+## 👥 División de trabajo (5 personas)
+
+| Persona | Módulo |
+|---|---|
+| **1** | Auth, middleware, panel admin, aprobaciones, planes |
+| **2** | Portal público: home, búsqueda, ficha, comparador |
+| **3** | Panel agente: CRUD propiedades, imágenes, amenidades |
+| **4** | Visitas, pipeline ventas, leads, contactos, emails |
+| **5** | Dashboard admin, gráficas, calculadora, autocompletado, mapas |
+
+---
+
+## 🌟 Funcionalidades destacadas para la presentación
+
+1. **Demo del autocompletado** — escribe "Polanco" o "casa" y muestra los resultados instantáneos
+2. **Cambio de tema oscuro/claro** — clic en la luna del navbar
+3. **Mapa interactivo** — entra a una propiedad y muestra el marker animado
+4. **Calculadora de hipoteca** — calcula la mensualidad de cualquier propiedad
+5. **Comparador** — selecciona 3 propiedades y compáralas lado a lado
+6. **Subida de imágenes** — drag & drop con preview (login como agente)
+7. **Email automático** — al contactar se genera un email HTML profesional (verlo en `storage/logs/laravel.log`)
+8. **Galería con carrusel**, **animaciones de scroll**, **3D tilt en cards**
+
+---
+
+## 📝 Licencia
+
+Proyecto académico — Segundo Parcial. Uso educativo.
+
+---
+
+## 👨‍💻 Autor
+
+**Angel Emiliano Miranda Baeza** — [GitHub](https://github.com/angelemilianomirandabaeza-web)

@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Api\AutocompleteController;
 use App\Http\Controllers\Admin\PropiedadAprobacionController;
 use App\Http\Controllers\Agente\AgenteDashboardController;
 use App\Http\Controllers\Agente\PropiedadController;
@@ -20,6 +21,7 @@ Route::get('/propiedades', [BusquedaController::class, 'index'])->name('propieda
 Route::get('/propiedades/{propiedad}', [PropiedadPublicaController::class, 'show'])->name('propiedades.show');
 Route::get('/comparar', [ComparadorController::class, 'index'])->name('comparar');
 Route::post('/contacto/{propiedad}', [ContactoController::class, 'store'])->name('contacto.store');
+Route::get('/api/autocomplete', [AutocompleteController::class, 'search'])->name('api.autocomplete');
 
 // ── AUTH ─────────────────────────────────────────────
 Route::middleware('guest')->group(function () {

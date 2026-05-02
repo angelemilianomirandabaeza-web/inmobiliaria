@@ -45,15 +45,100 @@
             --shadow-xl: 0 25px 50px -12px rgba(0,0,0,0.15);
             --shadow-glow: 0 0 30px rgba(245, 158, 11, 0.4);
             --shadow-glow-blue: 0 0 30px rgba(102, 126, 234, 0.4);
+
+            /* THEME COLORS - LIGHT */
+            --bg-primary: #f9fafb;
+            --bg-secondary: #ffffff;
+            --bg-tertiary: #f3f4f6;
+            --text-primary: #111827;
+            --text-secondary: #6b7280;
+            --border-color: #e5e7eb;
+            --card-bg: #ffffff;
+            --navbar-bg: rgba(255,255,255,0.85);
         }
+        [data-theme="dark"] {
+            --bg-primary: #0a0e1a;
+            --bg-secondary: #111827;
+            --bg-tertiary: #1f2937;
+            --text-primary: #f9fafb;
+            --text-secondary: #9ca3af;
+            --border-color: #374151;
+            --card-bg: #1f2937;
+            --navbar-bg: rgba(17,24,39,0.85);
+            --gray-50: #1f2937;
+            --gray-100: #374151;
+            --gray-200: #4b5563;
+            --gray-900: #f9fafb;
+        }
+        [data-theme="dark"] body { background: var(--bg-primary); color: var(--text-primary); }
+        [data-theme="dark"] .navbar { background: var(--navbar-bg) !important; border-bottom-color: rgba(75,85,99,0.3); }
+        [data-theme="dark"] .navbar-brand, [data-theme="dark"] .navbar .nav-link { color: var(--text-primary) !important; }
+        [data-theme="dark"] .card,
+        [data-theme="dark"] .property-card,
+        [data-theme="dark"] .stat-card,
+        [data-theme="dark"] .step-card,
+        [data-theme="dark"] .testimonial-card,
+        [data-theme="dark"] .agent-card { background: var(--card-bg); border-color: var(--border-color); color: var(--text-primary); }
+        [data-theme="dark"] .card-header { background: var(--card-bg); border-bottom-color: var(--border-color); color: var(--text-primary); }
+        [data-theme="dark"] .text-muted { color: var(--text-secondary) !important; }
+        [data-theme="dark"] .text-dark { color: var(--text-primary) !important; }
+        [data-theme="dark"] .bg-white,
+        [data-theme="dark"] section[style*="background:white"],
+        [data-theme="dark"] section[style*="background: white"] { background: var(--bg-secondary) !important; }
+        [data-theme="dark"] section[style*="background: var(--gray-50)"],
+        [data-theme="dark"] .bg-light-soft { background: var(--bg-primary) !important; }
+        [data-theme="dark"] .form-control,
+        [data-theme="dark"] .form-select { background: var(--bg-tertiary); border-color: var(--border-color); color: var(--text-primary); }
+        [data-theme="dark"] .form-control::placeholder { color: var(--text-secondary); }
+        [data-theme="dark"] .input-group-text { background: var(--bg-tertiary); border-color: var(--border-color); color: var(--text-secondary); }
+        [data-theme="dark"] .table { color: var(--text-primary); }
+        [data-theme="dark"] .table thead th { background: var(--bg-tertiary); color: var(--text-secondary); }
+        [data-theme="dark"] .table-hover tbody tr:hover { background: rgba(255,255,255,0.05); }
+        [data-theme="dark"] .breadcrumb-item.active,
+        [data-theme="dark"] .breadcrumb-item a { color: var(--text-secondary); }
+        [data-theme="dark"] .badge.bg-light { background: var(--bg-tertiary) !important; color: var(--text-primary) !important; }
+        [data-theme="dark"] hr { border-color: var(--border-color); }
+        [data-theme="dark"] .pagination .page-link { background: var(--card-bg); border-color: var(--border-color); color: var(--text-primary); }
+        [data-theme="dark"] .dropdown-menu { background: var(--card-bg); border-color: var(--border-color); }
+        [data-theme="dark"] .dropdown-item { color: var(--text-primary); }
+        [data-theme="dark"] .dropdown-item:hover { background: var(--bg-tertiary); color: var(--text-primary); }
+        [data-theme="dark"] .alert-info { background: rgba(59,130,246,0.15); color: #93c5fd; }
+        [data-theme="dark"] .alert-success { background: rgba(16,185,129,0.15); color: #6ee7b7; }
+        [data-theme="dark"] .alert-danger { background: rgba(239,68,68,0.15); color: #fca5a5; }
+        [data-theme="dark"] .alert-warning { background: rgba(245,158,11,0.15); color: #fcd34d; }
+
+        /* DARK MODE TOGGLE BUTTON */
+        .theme-toggle {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            width: 42px; height: 42px;
+            border-radius: 12px;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative; overflow: hidden;
+        }
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: white;
+            transform: rotate(180deg) scale(1.1);
+            box-shadow: 0 8px 20px rgba(245,158,11,0.4);
+        }
+        .theme-toggle .sun-icon { display: block; }
+        .theme-toggle .moon-icon { display: none; }
+        [data-theme="dark"] .theme-toggle .sun-icon { display: none; }
+        [data-theme="dark"] .theme-toggle .moon-icon { display: block; }
+
         * { -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
         html { scroll-behavior: smooth; }
         body {
             font-family: 'Inter', system-ui, sans-serif;
-            background: var(--gray-50);
-            color: var(--gray-900);
+            background: var(--bg-primary);
+            color: var(--text-primary);
             line-height: 1.6;
             overflow-x: hidden;
+            transition: background-color 0.3s, color 0.3s;
         }
         h1,h2,h3,h4,h5,h6 { font-family: 'Bricolage Grotesque', 'Plus Jakarta Sans', sans-serif; font-weight: 700; letter-spacing: -0.025em; }
         ::selection { background: var(--accent); color: white; }
@@ -765,6 +850,104 @@
         }
         .dropdown-item { border-radius: 8px; padding: 0.6rem 1rem; transition: all 0.2s; }
         .dropdown-item:hover { background: var(--gray-50); }
+
+        /* AUTOCOMPLETE */
+        .navbar-search {
+            position: relative;
+            min-width: 280px;
+            max-width: 400px;
+        }
+        .navbar-search-input {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 0.55rem 1rem 0.55rem 2.5rem;
+            font-size: 0.9rem;
+            width: 100%;
+            transition: all 0.3s;
+            color: var(--text-primary);
+        }
+        .navbar-search-input:focus {
+            background: var(--bg-secondary);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(245,158,11,0.12);
+            outline: none;
+        }
+        .navbar-search-icon {
+            position: absolute; left: 0.85rem; top: 50%; transform: translateY(-50%);
+            color: var(--text-secondary);
+            pointer-events: none;
+        }
+        .navbar-search-results {
+            position: absolute; top: calc(100% + 8px); left: 0; right: 0;
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.15);
+            max-height: 480px;
+            overflow-y: auto;
+            display: none;
+            z-index: 1000;
+            padding: 0.5rem;
+        }
+        .navbar-search-results.show { display: block; animation: slideDown 0.25s ease; }
+        @keyframes slideDown {
+            from { opacity: 0; transform: translateY(-10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .autocomplete-item {
+            display: flex; align-items: center; gap: 12px;
+            padding: 0.75rem;
+            border-radius: 10px;
+            text-decoration: none;
+            color: var(--text-primary);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+        .autocomplete-item:hover, .autocomplete-item.active {
+            background: var(--bg-tertiary);
+            color: var(--text-primary);
+            transform: translateX(4px);
+        }
+        .autocomplete-icon {
+            width: 44px; height: 44px;
+            border-radius: 10px;
+            display: flex; align-items: center; justify-content: center;
+            background: rgba(245,158,11,0.12);
+            color: var(--accent-dark);
+            flex-shrink: 0;
+            overflow: hidden;
+        }
+        .autocomplete-icon img { width: 100%; height: 100%; object-fit: cover; }
+        .autocomplete-content { flex-grow: 1; min-width: 0; }
+        .autocomplete-title {
+            font-weight: 600; font-size: 0.9rem;
+            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+            margin: 0;
+        }
+        .autocomplete-subtitle {
+            font-size: 0.78rem; color: var(--text-secondary);
+            margin: 0;
+        }
+        .autocomplete-price {
+            font-size: 0.8rem; font-weight: 700;
+            color: var(--accent-dark);
+            white-space: nowrap;
+        }
+        .autocomplete-section-title {
+            font-size: 0.7rem; font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-secondary);
+            padding: 0.5rem 0.75rem 0.25rem;
+            margin: 0;
+        }
+        .autocomplete-empty {
+            padding: 2rem 1rem; text-align: center; color: var(--text-secondary);
+        }
+        @media (max-width: 991px) {
+            .navbar-search { display: none; }
+        }
     </style>
     @stack('styles')
 </head>
@@ -787,7 +970,21 @@
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('propiedades.*') ? 'active' : '' }}" href="{{ route('propiedades.buscar') }}">Propiedades</a></li>
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('comparar') ? 'active' : '' }}" href="{{ route('comparar') }}">Comparar</a></li>
                 </ul>
+
+                <!-- SEARCH AUTOCOMPLETE -->
+                <div class="navbar-search me-3" id="navbarSearch">
+                    <i class="fas fa-search navbar-search-icon"></i>
+                    <input type="text" class="navbar-search-input" id="searchInput" placeholder="Buscar propiedades, colonias..." autocomplete="off">
+                    <div class="navbar-search-results" id="searchResults"></div>
+                </div>
+
                 <ul class="navbar-nav align-items-lg-center">
+                    <li class="nav-item me-2">
+                        <button class="theme-toggle" id="themeToggle" aria-label="Cambiar tema" title="Cambiar tema">
+                            <i class="fas fa-moon sun-icon"></i>
+                            <i class="fas fa-sun moon-icon"></i>
+                        </button>
+                    </li>
                     @auth
                         <li class="nav-item me-2">
                             <a class="nav-link" href="{{ route('dashboard') }}"><i class="fas fa-th-large me-1"></i> Mi Panel</a>
@@ -901,6 +1098,17 @@
     <script src="https://cdn.jsdelivr.net/npm/typed.js@2.1.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/countup.js@2.8.0/dist/countUp.umd.js"></script>
     <script>
+        // DARK MODE TOGGLE
+        const savedTheme = localStorage.getItem('theme') || 'light';
+        document.documentElement.setAttribute('data-theme', savedTheme);
+
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            const current = document.documentElement.getAttribute('data-theme');
+            const next = current === 'dark' ? 'light' : 'dark';
+            document.documentElement.setAttribute('data-theme', next);
+            localStorage.setItem('theme', next);
+        });
+
         AOS.init({ duration: 900, once: true, offset: 80, easing: 'ease-out-cubic' });
 
         // SCROLL PROGRESS
@@ -944,6 +1152,118 @@
                 max: 8, speed: 600, glare: true, 'max-glare': 0.15
             });
         }
+
+        // AUTOCOMPLETE NAVBAR
+        (function() {
+            const input = document.getElementById('searchInput');
+            const results = document.getElementById('searchResults');
+            const wrapper = document.getElementById('navbarSearch');
+            if (!input) return;
+
+            let debounceTimer;
+            let currentResults = [];
+            let activeIndex = -1;
+
+            input.addEventListener('input', (e) => {
+                clearTimeout(debounceTimer);
+                const q = e.target.value.trim();
+                if (q.length < 2) { results.classList.remove('show'); return; }
+                debounceTimer = setTimeout(() => fetchResults(q), 250);
+            });
+
+            input.addEventListener('focus', () => {
+                if (input.value.length >= 2 && currentResults.length) results.classList.add('show');
+            });
+
+            input.addEventListener('keydown', (e) => {
+                const items = results.querySelectorAll('.autocomplete-item');
+                if (e.key === 'ArrowDown') {
+                    e.preventDefault();
+                    activeIndex = Math.min(activeIndex + 1, items.length - 1);
+                    updateActive(items);
+                } else if (e.key === 'ArrowUp') {
+                    e.preventDefault();
+                    activeIndex = Math.max(activeIndex - 1, -1);
+                    updateActive(items);
+                } else if (e.key === 'Enter') {
+                    e.preventDefault();
+                    if (activeIndex >= 0 && items[activeIndex]) {
+                        window.location = items[activeIndex].href;
+                    } else if (input.value.trim()) {
+                        window.location = '{{ route("propiedades.buscar") }}?busqueda=' + encodeURIComponent(input.value);
+                    }
+                } else if (e.key === 'Escape') {
+                    results.classList.remove('show');
+                    input.blur();
+                }
+            });
+
+            function updateActive(items) {
+                items.forEach((it, i) => it.classList.toggle('active', i === activeIndex));
+                if (items[activeIndex]) items[activeIndex].scrollIntoView({ block: 'nearest' });
+            }
+
+            document.addEventListener('click', (e) => {
+                if (!wrapper.contains(e.target)) results.classList.remove('show');
+            });
+
+            async function fetchResults(q) {
+                try {
+                    const res = await fetch(`{{ route('api.autocomplete') }}?q=${encodeURIComponent(q)}`);
+                    const data = await res.json();
+                    currentResults = data.results;
+                    activeIndex = -1;
+                    renderResults(data.results, data.query);
+                } catch (err) {
+                    console.error(err);
+                }
+            }
+
+            function renderResults(items, q) {
+                if (!items.length) {
+                    results.innerHTML = `<div class="autocomplete-empty"><i class="fas fa-search-minus mb-2 d-block" style="font-size:1.5rem; opacity:0.5"></i>Sin resultados para "<strong>${q}</strong>"</div>`;
+                    results.classList.add('show');
+                    return;
+                }
+
+                const grouped = items.reduce((acc, item) => {
+                    if (!acc[item.type]) acc[item.type] = [];
+                    acc[item.type].push(item);
+                    return acc;
+                }, {});
+
+                const labels = { propiedad: 'Propiedades', colonia: 'Colonias', municipio: 'Ciudades' };
+
+                let html = '';
+                for (const type in grouped) {
+                    html += `<p class="autocomplete-section-title">${labels[type] || type}</p>`;
+                    grouped[type].forEach(item => {
+                        html += `
+                            <a href="${item.url}" class="autocomplete-item">
+                                <div class="autocomplete-icon">
+                                    ${item.image ? `<img src="${item.image}">` : `<i class="fas ${item.icon}"></i>`}
+                                </div>
+                                <div class="autocomplete-content">
+                                    <p class="autocomplete-title">${item.title}</p>
+                                    <p class="autocomplete-subtitle">${item.subtitle}</p>
+                                </div>
+                                <span class="autocomplete-price">${item.price}</span>
+                            </a>
+                        `;
+                    });
+                }
+                html += `
+                    <div style="border-top: 1px solid var(--border-color); margin-top: 0.5rem; padding-top: 0.5rem">
+                        <a href="{{ route('propiedades.buscar') }}?busqueda=${encodeURIComponent(q)}" class="autocomplete-item" style="justify-content:center; color:var(--accent-dark); font-weight:600">
+                            <i class="fas fa-arrow-right"></i> Ver todos los resultados
+                        </a>
+                    </div>
+                `;
+
+                results.innerHTML = html;
+                results.classList.add('show');
+            }
+        })();
     </script>
     @stack('scripts')
 </body>

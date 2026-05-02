@@ -6,10 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Amenidad;
 use App\Models\Colonia;
 use App\Models\EstadoPropiedad;
+use App\Models\ImagenPropiedad;
 use App\Models\Propiedad;
 use App\Models\TipoOperacion;
 use App\Models\TipoPropiedad;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class PropiedadController extends Controller
 {
@@ -58,8 +60,11 @@ class PropiedadController extends Controller
             'amueblado'            => 'nullable|boolean',
             'amenidades'           => 'nullable|array',
             'amenidades.*'         => 'exists:amenidades,id',
+            'imagenes'             => 'nullable|array|max:10',
+            'imagenes.*'           => 'image|mimes:jpeg,png,jpg,webp|max:5120',
         ]);
 
+        unset($data['imagenes']);
         $data['agente_id'] = auth()->user()->agente->id;
         $data['amueblado'] = $request->has('amueblado');
         $data['aprobada']  = false;
@@ -70,8 +75,21 @@ class PropiedadController extends Controller
             $propiedad->amenidades()->sync($request->amenidades);
         }
 
+        // Subida de imagenes
+        if ($request->hasFile('imagenes')) {
+            foreach ($request->file('imagenes') as $i => $file) {
+                $path = $file->store('propiedades/' . $propiedad->id, 'public');
+                ImagenPropiedad::create([
+                    'propiedad_id' => $propiedad->id,
+                    'url_imagen'   => Storage::url($path),
+                    'es_principal' => $i === 0,
+                    'orden'        => $i,
+                ]);
+            }
+        }
+
         return redirect()->route('agente.propiedades.index')
-            ->with('success', 'Propiedad creada. Sera visible al ser aprobada por el admin.');
+            ->with('success', 'Propiedad creada con ' . ($request->hasFile('imagenes') ? count($request->file('imagenes')) . ' imagenes' : 'sin imagenes') . '. Sera visible al ser aprobada por el admin.');
     }
 
     public function show(Propiedad $propiedad)

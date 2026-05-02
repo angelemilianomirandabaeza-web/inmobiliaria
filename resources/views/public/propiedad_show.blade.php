@@ -131,6 +131,16 @@
                     </div>
                     @endif
 
+                    @if($propiedad->latitud && $propiedad->longitud)
+                    <hr>
+                    <h5 class="mb-3"><i class="fas fa-map-marked-alt text-accent me-2"></i>Ubicacion</h5>
+                    <div id="mapa-propiedad" style="height:400px; border-radius:16px; overflow:hidden; border: 1px solid var(--gray-200)"></div>
+                    <small class="text-muted d-block mt-2">
+                        <i class="fas fa-info-circle me-1"></i>
+                        La ubicacion exacta se compartira al confirmar la visita
+                    </small>
+                    @endif
+
                     <hr>
                     <h5 class="mb-3"><i class="fas fa-info-circle text-accent me-2"></i>Detalles adicionales</h5>
                     <div class="row">
@@ -254,7 +264,76 @@
     @endif
 </div>
 
+@push('styles')
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+    [data-theme="dark"] .leaflet-tile { filter: brightness(0.7) invert(1) contrast(0.85) hue-rotate(200deg) saturate(0.6) brightness(0.8); }
+    .leaflet-popup-content-wrapper { border-radius: 12px !important; }
+    .property-marker {
+        background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+        width: 44px; height: 44px;
+        border-radius: 50% 50% 50% 0;
+        transform: rotate(-45deg);
+        display: flex; align-items: center; justify-content: center;
+        color: white; font-size: 1.1rem;
+        box-shadow: 0 8px 20px rgba(245,158,11,0.5);
+        animation: pulse-marker 2s infinite;
+    }
+    .property-marker i { transform: rotate(45deg); }
+    @keyframes pulse-marker {
+        0%, 100% { box-shadow: 0 8px 20px rgba(245,158,11,0.5); }
+        50% { box-shadow: 0 8px 30px rgba(245,158,11,0.8), 0 0 0 12px rgba(245,158,11,0.15); }
+    }
+</style>
+@endpush
+
 @push('scripts')
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+@if($propiedad->latitud && $propiedad->longitud)
+<script>
+// MAPA LEAFLET
+const lat = {{ $propiedad->latitud }};
+const lng = {{ $propiedad->longitud }};
+const mapa = L.map('mapa-propiedad', {
+    center: [lat, lng],
+    zoom: 15,
+    scrollWheelZoom: false
+});
+
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '&copy; OpenStreetMap',
+    maxZoom: 19
+}).addTo(mapa);
+
+// Custom marker icon
+const customIcon = L.divIcon({
+    className: 'custom-property-marker',
+    html: '<div class="property-marker"><i class="fas fa-home"></i></div>',
+    iconSize: [44, 44],
+    iconAnchor: [22, 44],
+    popupAnchor: [0, -40]
+});
+
+const marker = L.marker([lat, lng], { icon: customIcon }).addTo(mapa);
+marker.bindPopup(`
+    <div style="font-family: 'Inter', sans-serif; min-width:200px">
+        <strong style="font-size:0.95rem">{{ Str::limit($propiedad->titulo, 40) }}</strong><br>
+        <small style="color:#6b7280">{{ $propiedad->colonia->nombre }}, {{ $propiedad->colonia->municipio->nombre }}</small><br>
+        <strong style="color:#d97706; font-size:1.05rem; display:block; margin-top:4px">${{ number_format($propiedad->precio, 0) }}</strong>
+    </div>
+`).openPopup();
+
+// Circulo de zona aproximada
+L.circle([lat, lng], {
+    color: '#f59e0b',
+    fillColor: '#f59e0b',
+    fillOpacity: 0.1,
+    radius: 300,
+    weight: 2
+}).addTo(mapa);
+</script>
+@endif
+
 <script>
 function calcular() {
     const precio = {{ $propiedad->precio }};

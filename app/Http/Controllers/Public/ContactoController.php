@@ -3,9 +3,12 @@
 namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
+use App\Mail\NuevaSolicitudContacto;
 use App\Models\Propiedad;
 use App\Models\SolicitudContacto;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class ContactoController extends Controller
 {
@@ -21,8 +24,17 @@ class ContactoController extends Controller
         $data['propiedad_id'] = $propiedad->id;
         $data['cliente_id'] = auth()->id();
 
-        SolicitudContacto::create($data);
+        $solicitud = SolicitudContacto::create($data);
+        $solicitud->load(['propiedad.colonia.municipio', 'propiedad.agente.usuario']);
 
-        return back()->with('success', 'Tu mensaje ha sido enviado al agente. Te contactaran pronto.');
+        // Enviar email al agente (usa driver "log" en .env por defecto)
+        try {
+            $emailAgente = $propiedad->agente->usuario->email;
+            Mail::to($emailAgente)->send(new NuevaSolicitudContacto($solicitud));
+        } catch (\Throwable $e) {
+            Log::warning('No se pudo enviar email de contacto: ' . $e->getMessage());
+        }
+
+        return back()->with('success', 'Tu mensaje fue enviado al agente. Te contactaran pronto.');
     }
 }
