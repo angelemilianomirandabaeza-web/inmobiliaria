@@ -10,9 +10,11 @@
                 <h1 class="mb-1" style="font-size:2rem">Hola, {{ auth()->user()->name }} 👋</h1>
                 <p class="mb-0 opacity-75">Aqui tienes todo lo que necesitas para encontrar tu hogar ideal</p>
             </div>
-            <a href="{{ route('propiedades.buscar') }}" class="btn btn-warning btn-lg mt-3 mt-md-0">
-                <i class="fas fa-search me-1"></i> Buscar propiedades
-            </a>
+            <div class="d-flex gap-2 mt-3 mt-md-0">
+                <a href="{{ route('cliente.visitas.index') }}" class="btn btn-outline-light"><i class="fas fa-calendar me-1"></i> Visitas</a>
+                <a href="{{ route('cliente.alertas.index') }}" class="btn btn-outline-light"><i class="fas fa-bell me-1"></i> Alertas</a>
+                <a href="{{ route('propiedades.buscar') }}" class="btn btn-warning"><i class="fas fa-search me-1"></i> Buscar</a>
+            </div>
         </div>
     </div>
 </div>

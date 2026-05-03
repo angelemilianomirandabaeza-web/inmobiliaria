@@ -10,9 +10,14 @@
                 <h1 class="mb-1" style="font-size:2rem">Hola, {{ auth()->user()->name }} 👋</h1>
                 <p class="mb-0 opacity-75">Gestiona tus propiedades y citas desde aqui</p>
             </div>
-            <a href="{{ route('agente.propiedades.create') }}" class="btn btn-warning btn-lg mt-3 mt-md-0">
-                <i class="fas fa-plus-circle me-1"></i> Nueva propiedad
-            </a>
+            <div class="d-flex gap-2 mt-3 mt-md-0">
+                <a href="{{ route('agente.pipeline.index') }}" class="btn btn-outline-light btn-lg">
+                    <i class="fas fa-stream me-1"></i> Pipeline
+                </a>
+                <a href="{{ route('agente.propiedades.create') }}" class="btn btn-warning btn-lg">
+                    <i class="fas fa-plus-circle me-1"></i> Nueva propiedad
+                </a>
+            </div>
         </div>
     </div>
 </div>

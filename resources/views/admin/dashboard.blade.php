@@ -10,9 +10,9 @@
                 <h1 class="mb-1" style="font-size:2rem">Hola, {{ auth()->user()->name }} 👋</h1>
                 <p class="mb-0 opacity-75">Aqui esta el resumen general del sistema</p>
             </div>
-            <div class="text-end mt-3 mt-md-0">
-                <small class="opacity-75 d-block">Hoy es</small>
-                <strong>{{ now()->translatedFormat('l, d \d\e F Y') }}</strong>
+            <div class="d-flex gap-2 mt-3 mt-md-0">
+                <a href="{{ route('admin.reporte') }}" class="btn btn-warning"><i class="fas fa-file-invoice me-1"></i> Reporte ejecutivo</a>
+                <a href="{{ route('admin.propiedades.index') }}" class="btn btn-outline-light"><i class="fas fa-tasks me-1"></i> Aprobaciones</a>
             </div>
         </div>
     </div>

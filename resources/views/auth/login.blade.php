@@ -36,9 +36,12 @@
                                     <input type="password" name="password" class="form-control" required placeholder="••••••••">
                                 </div>
                             </div>
-                            <div class="form-check mb-4">
-                                <input type="checkbox" name="remember" class="form-check-input" id="remember">
-                                <label class="form-check-label" for="remember">Mantener sesion iniciada</label>
+                            <div class="d-flex justify-content-between align-items-center mb-4">
+                                <div class="form-check">
+                                    <input type="checkbox" name="remember" class="form-check-input" id="remember">
+                                    <label class="form-check-label small" for="remember">Recordarme</label>
+                                </div>
+                                <a href="{{ route('password.request') }}" class="small text-accent text-decoration-none">¿Olvidaste tu contrasena?</a>
                             </div>
                             <button type="submit" class="btn btn-primary w-100 btn-lg">Iniciar Sesion <i class="fas fa-arrow-right ms-1"></i></button>
                         </form>

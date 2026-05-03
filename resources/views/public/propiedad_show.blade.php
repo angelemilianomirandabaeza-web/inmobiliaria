@@ -1,5 +1,27 @@
 @extends('layouts.app')
 @section('title', $propiedad->titulo)
+@section('og_type', 'product')
+@section('og_title', $propiedad->titulo . ' - $' . number_format($propiedad->precio, 0))
+@section('og_description', Str::limit($propiedad->descripcion, 160))
+@section('og_image', $propiedad->imagenPrincipal->url_imagen ?? 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&q=80')
+
+@push('schema')
+<script type="application/ld+json">
+{
+    "@context": "https://schema.org",
+    "@type": "Product",
+    "name": "{{ addslashes($propiedad->titulo) }}",
+    "description": "{{ addslashes(Str::limit($propiedad->descripcion, 200)) }}",
+    "image": "{{ $propiedad->imagenPrincipal->url_imagen ?? '' }}",
+    "offers": {
+        "@type": "Offer",
+        "price": "{{ $propiedad->precio }}",
+        "priceCurrency": "MXN",
+        "availability": "https://schema.org/InStock"
+    }
+}
+</script>
+@endpush
 
 @section('content')
 <div class="container py-4">
@@ -164,16 +186,62 @@
             <div class="d-flex gap-2 mb-3" data-aos="fade-up">
                 @auth
                     @if(auth()->user()->isCliente())
-                    <form method="POST" action="{{ route('cliente.favoritos.store', $propiedad) }}" class="flex-grow-1">
-                        @csrf
-                        <button type="submit" class="btn btn-warning w-100"><i class="fas fa-heart me-1"></i> Favorito</button>
-                    </form>
+                    <button type="button" class="btn btn-warning flex-grow-1" data-bs-toggle="modal" data-bs-target="#agendarVisitaModal">
+                        <i class="fas fa-calendar-plus me-1"></i> Agendar visita
+                    </button>
                     @endif
+                @else
+                    <a href="{{ route('login') }}" class="btn btn-warning flex-grow-1"><i class="fas fa-calendar-plus me-1"></i> Agendar visita</a>
                 @endauth
-                <button class="btn btn-outline-primary flex-grow-1" onclick="navigator.share && navigator.share({url: window.location.href, title: '{{ $propiedad->titulo }}'}) || navigator.clipboard.writeText(window.location.href).then(() => alert('Enlace copiado'))">
-                    <i class="fas fa-share-alt me-1"></i> Compartir
+                <button class="btn btn-outline-primary" onclick="navigator.share && navigator.share({url: window.location.href, title: '{{ $propiedad->titulo }}'}) || navigator.clipboard.writeText(window.location.href).then(() => toast.success('Enlace copiado'))" title="Compartir">
+                    <i class="fas fa-share-alt"></i>
                 </button>
             </div>
+
+            @auth
+                @if(auth()->user()->isCliente())
+                <!-- Modal: Agendar visita -->
+                <div class="modal fade" id="agendarVisitaModal" tabindex="-1">
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content" style="border-radius:20px; border:none">
+                            <div class="modal-header border-0">
+                                <h5 class="modal-title"><i class="fas fa-calendar-plus text-accent me-2"></i>Agendar visita</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                            </div>
+                            <form method="POST" action="{{ route('cliente.visitas.store', $propiedad) }}">
+                                @csrf
+                                <div class="modal-body">
+                                    <p class="text-muted small mb-3">Selecciona la fecha y hora que prefieres. El agente confirmara via email.</p>
+                                    <div class="row g-3">
+                                        <div class="col-md-6">
+                                            <label class="form-label">Fecha</label>
+                                            <input type="date" name="fecha_visita" class="form-control" required min="{{ now()->format('Y-m-d') }}" max="{{ now()->addMonths(3)->format('Y-m-d') }}">
+                                        </div>
+                                        <div class="col-md-6">
+                                            <label class="form-label">Hora preferida</label>
+                                            <select name="hora_inicio" class="form-select" required>
+                                                <option value="">Selecciona</option>
+                                                @foreach(['09:00','10:00','11:00','12:00','13:00','14:00','15:00','16:00','17:00','18:00'] as $h)
+                                                    <option value="{{ $h }}">{{ $h }} hrs</option>
+                                                @endforeach
+                                            </select>
+                                        </div>
+                                        <div class="col-12">
+                                            <label class="form-label">Notas adicionales <small class="text-muted">(opcional)</small></label>
+                                            <textarea name="notas_cliente" class="form-control" rows="3" placeholder="¿Algo que quieras comentarle al agente?"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer border-0">
+                                    <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                                    <button type="submit" class="btn btn-warning"><i class="fas fa-paper-plane me-1"></i>Solicitar visita</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                @endif
+            @endauth
 
             <!-- Agente -->
             <div class="card mb-3" data-aos="fade-up" data-aos-delay="100">
@@ -184,16 +252,64 @@
                              style="width:60px; height:60px; background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color:white; font-weight:700; font-size:1.4rem">
                             {{ strtoupper(substr($propiedad->agente->usuario->name, 0, 1)) }}
                         </div>
-                        <div>
+                        <div class="flex-grow-1">
                             <h6 class="mb-1">{{ $propiedad->agente->usuario->name }}</h6>
                             @if($propiedad->agente->especialidad)
-                                <p class="text-muted small mb-0">{{ $propiedad->agente->especialidad }}</p>
+                                <p class="text-muted small mb-1">{{ $propiedad->agente->especialidad }}</p>
                             @endif
-                            @if($propiedad->agente->anios_experiencia > 0)
-                                <small class="text-muted"><i class="fas fa-award text-accent me-1"></i>{{ $propiedad->agente->anios_experiencia }} anos de experiencia</small>
-                            @endif
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="rating-stars" style="font-size:0.85rem">
+                                    @for($i = 1; $i <= 5; $i++)
+                                        <i class="fas fa-star {{ $i <= round($propiedad->agente->calificacion_promedio) ? 'filled' : '' }}"></i>
+                                    @endfor
+                                </div>
+                                <small class="text-muted">{{ number_format($propiedad->agente->calificacion_promedio, 1) }}</small>
+                            </div>
                         </div>
                     </div>
+                    @if($propiedad->agente->anios_experiencia > 0)
+                        <small class="text-muted d-block"><i class="fas fa-award text-accent me-1"></i>{{ $propiedad->agente->anios_experiencia }} anos de experiencia</small>
+                    @endif
+
+                    @auth
+                        @if(auth()->user()->isCliente())
+                            <hr>
+                            <button class="btn btn-sm btn-outline-primary w-100" data-bs-toggle="modal" data-bs-target="#resenaModal">
+                                <i class="fas fa-star me-1"></i> Calificar a este agente
+                            </button>
+
+                            <!-- Modal Reseña -->
+                            <div class="modal fade" id="resenaModal" tabindex="-1">
+                                <div class="modal-dialog modal-dialog-centered">
+                                    <div class="modal-content" style="border-radius:20px; border:none">
+                                        <div class="modal-header border-0">
+                                            <h5 class="modal-title"><i class="fas fa-star text-accent me-2"></i>Califica al agente</h5>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                        </div>
+                                        <form method="POST" action="{{ route('cliente.resenas.store', $propiedad->agente) }}">
+                                            @csrf
+                                            <div class="modal-body">
+                                                <p class="text-muted small">Comparte tu experiencia con <strong>{{ $propiedad->agente->usuario->name }}</strong></p>
+                                                <label class="form-label d-block">Tu calificacion</label>
+                                                <div class="rating-stars interactive mb-3" id="ratingInput" style="font-size:2.5rem">
+                                                    @for($i = 1; $i <= 5; $i++)
+                                                        <i class="fas fa-star" data-value="{{ $i }}"></i>
+                                                    @endfor
+                                                </div>
+                                                <input type="hidden" name="calificacion" id="calificacionInput" required>
+                                                <label class="form-label">Comentario <small class="text-muted">(opcional)</small></label>
+                                                <textarea name="comentario" class="form-control" rows="4" placeholder="¿Como fue tu experiencia?"></textarea>
+                                            </div>
+                                            <div class="modal-footer border-0">
+                                                <button type="button" class="btn btn-light" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" class="btn btn-warning"><i class="fas fa-paper-plane me-1"></i>Enviar reseña</button>
+                                            </div>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        @endif
+                    @endauth
                 </div>
             </div>
 
@@ -335,6 +451,28 @@ L.circle([lat, lng], {
 @endif
 
 <script>
+// RATING INTERACTIVO
+const ratingInput = document.getElementById('ratingInput');
+if (ratingInput) {
+    const stars = ratingInput.querySelectorAll('.fa-star');
+    const hidden = document.getElementById('calificacionInput');
+    let currentRating = 0;
+
+    stars.forEach(star => {
+        star.addEventListener('mouseenter', () => {
+            const v = parseInt(star.dataset.value);
+            stars.forEach((s, i) => s.classList.toggle('filled', i < v));
+        });
+        star.addEventListener('click', () => {
+            currentRating = parseInt(star.dataset.value);
+            hidden.value = currentRating;
+        });
+    });
+    ratingInput.addEventListener('mouseleave', () => {
+        stars.forEach((s, i) => s.classList.toggle('filled', i < currentRating));
+    });
+}
+
 function calcular() {
     const precio = {{ $propiedad->precio }};
     const enganche = parseFloat(document.getElementById('enganche').value) / 100;

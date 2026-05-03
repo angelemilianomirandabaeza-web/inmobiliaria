@@ -7,6 +7,42 @@
     <meta name="description" content="InmoTech - La plataforma inmobiliaria mas completa de Mexico. Encuentra casas, departamentos y locales en venta o renta.">
     <title>@yield('title', 'Inicio') | InmoTech</title>
 
+    <!-- SEO META TAGS -->
+    <meta name="keywords" content="bienes raices, inmobiliaria, casas, departamentos, mexico, venta, renta, propiedades">
+    <meta name="author" content="InmoTech">
+    <meta name="theme-color" content="#0f172a">
+
+    <!-- OPEN GRAPH (Facebook, WhatsApp, LinkedIn) -->
+    <meta property="og:type" content="@yield('og_type', 'website')">
+    <meta property="og:title" content="@yield('og_title', 'InmoTech - Tu hogar ideal te espera')">
+    <meta property="og:description" content="@yield('og_description', 'La plataforma inmobiliaria mas completa de Mexico. Miles de propiedades verificadas.')">
+    <meta property="og:image" content="@yield('og_image', 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&q=80')">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:site_name" content="InmoTech">
+    <meta property="og:locale" content="es_MX">
+
+    <!-- TWITTER CARD -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="@yield('og_title', 'InmoTech')">
+    <meta name="twitter:description" content="@yield('og_description', 'Encuentra tu hogar ideal')">
+    <meta name="twitter:image" content="@yield('og_image', 'https://images.unsplash.com/photo-1564013799919-ab600027ffc6?w=1200&q=80')">
+
+    <!-- SCHEMA.ORG -->
+    @stack('schema')
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "RealEstateAgent",
+        "name": "InmoTech",
+        "description": "Plataforma inmobiliaria de Mexico",
+        "url": "{{ url('/') }}",
+        "logo": "{{ url('/storage/logo.png') }}"
+    }
+    </script>
+
+    <!-- FAVICON -->
+    <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Crect width='24' height='24' rx='5' fill='%23f59e0b'/%3E%3Cpath d='M12 5l-7 6h2v6h4v-4h2v4h4v-6h2z' fill='white'/%3E%3C/svg%3E">
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800;900&family=Inter:wght@400;500;600;700&family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet">
@@ -14,6 +50,10 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/css/splide.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.css" rel="stylesheet">
 
     <style>
         :root {
@@ -948,10 +988,305 @@
         @media (max-width: 991px) {
             .navbar-search { display: none; }
         }
+
+        /* LOADING SCREEN */
+        .loading-screen {
+            position: fixed;
+            inset: 0;
+            background: linear-gradient(135deg, #0f172a, #1e293b);
+            z-index: 99999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: opacity 0.6s, visibility 0.6s;
+        }
+        .loading-screen.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+        .loading-house {
+            width: 100px; height: 100px;
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+            border-radius: 24px;
+            display: flex; align-items: center; justify-content: center;
+            color: white; font-size: 3rem;
+            box-shadow: 0 20px 60px rgba(245,158,11,0.5);
+            animation: bounce-house 1.5s ease-in-out infinite;
+        }
+        @keyframes bounce-house {
+            0%, 100% { transform: translateY(0) scale(1); }
+            50% { transform: translateY(-15px) scale(1.05); }
+        }
+        .loading-text {
+            color: white;
+            font-family: 'Bricolage Grotesque', sans-serif;
+            font-weight: 800;
+            font-size: 1.5rem;
+            margin-top: 1.5rem;
+            letter-spacing: 0.05em;
+        }
+        .loading-dots span {
+            display: inline-block;
+            width: 8px; height: 8px;
+            background: var(--accent);
+            border-radius: 50%;
+            margin: 0 3px;
+            animation: dot-bounce 1.4s ease-in-out infinite;
+        }
+        .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
+        .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes dot-bounce {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1.2); opacity: 1; }
+        }
+
+        /* HEART ANIMATION (favoritos) */
+        .heart-btn {
+            background: white; border: 1px solid var(--gray-200);
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--gray-500);
+            position: relative;
+            font-size: 1.1rem;
+        }
+        .heart-btn:hover { transform: scale(1.1); border-color: #ef4444; color: #ef4444; }
+        .heart-btn.is-favorite {
+            background: #ef4444; color: white; border-color: #ef4444;
+            animation: heart-pop 0.5s;
+        }
+        @keyframes heart-pop {
+            0% { transform: scale(1); }
+            30% { transform: scale(1.4); }
+            60% { transform: scale(0.9); }
+            100% { transform: scale(1); }
+        }
+        .heart-btn.is-favorite::after {
+            content: ''; position: absolute; inset: -4px;
+            border-radius: 50%; border: 2px solid #ef4444;
+            opacity: 0;
+            animation: heart-ring 0.6s ease-out;
+        }
+        @keyframes heart-ring {
+            0% { opacity: 1; transform: scale(0.8); }
+            100% { opacity: 0; transform: scale(1.6); }
+        }
+
+        /* COMPARE BUTTON (en cards) */
+        .compare-btn {
+            background: white; border: 1px solid var(--gray-200);
+            width: 44px; height: 44px;
+            border-radius: 50%;
+            display: inline-flex; align-items: center; justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: var(--gray-500);
+            font-size: 1rem;
+        }
+        .compare-btn:hover { transform: scale(1.1); border-color: var(--accent); color: var(--accent); }
+        .compare-btn.is-comparing {
+            background: var(--accent); color: white; border-color: var(--accent);
+        }
+
+        /* COMPARE WIDGET FLOATING */
+        .compare-widget {
+            position: fixed; bottom: 30px; left: 50%;
+            transform: translateX(-50%) translateY(100px);
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            padding: 1rem 1.5rem;
+            display: flex; align-items: center; gap: 1rem;
+            z-index: 998;
+            transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            max-width: 90vw;
+        }
+        .compare-widget.show { transform: translateX(-50%) translateY(0); }
+        .compare-widget .compare-thumb {
+            width: 50px; height: 50px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 2px solid var(--accent);
+        }
+
+        /* QUICK VIEW MODAL */
+        .quick-view-modal .modal-content {
+            border-radius: 20px; border: none;
+            overflow: hidden;
+            box-shadow: 0 50px 100px rgba(0,0,0,0.3);
+        }
+        .quick-view-modal .modal-body { padding: 0; }
+        .quick-view-image {
+            aspect-ratio: 16/9;
+            background: var(--gray-100);
+            position: relative; overflow: hidden;
+        }
+        .quick-view-image img { width: 100%; height: 100%; object-fit: cover; }
+
+        /* SKELETON SCREEN */
+        .skeleton {
+            background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 50%, var(--gray-100) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+            border-radius: 8px;
+        }
+        @keyframes skeleton-loading {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+        .skeleton-card {
+            background: var(--card-bg);
+            border-radius: 20px;
+            padding: 0;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+        }
+        .skeleton-img {
+            aspect-ratio: 4/3;
+            background: linear-gradient(90deg, var(--gray-100) 25%, var(--gray-200) 50%, var(--gray-100) 75%);
+            background-size: 200% 100%;
+            animation: skeleton-loading 1.5s infinite;
+        }
+
+        /* WHATSAPP FLOATING */
+        .whatsapp-float {
+            position: fixed;
+            bottom: 30px; right: 30px;
+            background: linear-gradient(135deg, #25d366, #128c7e);
+            color: white;
+            width: 60px; height: 60px;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 1.8rem;
+            text-decoration: none;
+            box-shadow: 0 10px 30px rgba(37,211,102,0.5);
+            z-index: 998;
+            animation: whatsapp-pulse 2s infinite;
+        }
+        @keyframes whatsapp-pulse {
+            0%, 100% { box-shadow: 0 10px 30px rgba(37,211,102,0.5), 0 0 0 0 rgba(37,211,102,0.7); }
+            50% { box-shadow: 0 10px 30px rgba(37,211,102,0.5), 0 0 0 15px rgba(37,211,102,0); }
+        }
+        .whatsapp-float:hover {
+            color: white;
+            transform: scale(1.1) rotate(-5deg);
+        }
+
+        /* GRADIENT HOVER NAV LINKS */
+        .navbar .nav-link::before {
+            content: attr(data-text);
+            position: absolute;
+            top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; align-items: center; justify-content: center;
+            padding: inherit;
+            background: linear-gradient(135deg, var(--accent), #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        .navbar .nav-link:hover::before { opacity: 1; }
+
+        /* READING PROGRESS (en articulos largos) */
+        .reading-progress {
+            position: fixed;
+            top: 76px;
+            left: 0; right: 0;
+            height: 3px;
+            background: rgba(245,158,11,0.15);
+            z-index: 9000;
+        }
+        .reading-progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--accent), #ec4899);
+            width: 0;
+            transition: width 0.1s;
+            box-shadow: 0 0 10px rgba(245,158,11,0.6);
+        }
+
+        /* RATING STARS */
+        .rating-stars { display: inline-flex; gap: 2px; }
+        .rating-stars .fa-star { color: var(--gray-200); cursor: pointer; transition: all 0.2s; }
+        .rating-stars .fa-star.filled { color: var(--accent); }
+        .rating-stars.interactive .fa-star:hover { transform: scale(1.2); }
+
+        /* PRICE SLIDER (noUiSlider override) */
+        .noUi-target {
+            background: var(--gray-200);
+            border: none;
+            box-shadow: none;
+            height: 6px;
+            border-radius: 3px;
+        }
+        .noUi-connect {
+            background: linear-gradient(135deg, var(--accent), var(--accent-dark));
+        }
+        .noUi-handle {
+            background: white;
+            border: 3px solid var(--accent);
+            border-radius: 50%;
+            box-shadow: 0 4px 12px rgba(245,158,11,0.4);
+            width: 22px !important;
+            height: 22px !important;
+            top: -8px !important;
+            right: -11px !important;
+            cursor: grab;
+        }
+        .noUi-handle::before, .noUi-handle::after { display: none; }
+        .noUi-tooltip {
+            border: none;
+            background: var(--primary);
+            color: white;
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            font-family: 'Inter', sans-serif;
+        }
+
+        /* SWEETALERT2 OVERRIDE */
+        .swal2-popup {
+            border-radius: 20px !important;
+            font-family: 'Inter', sans-serif !important;
+        }
+        .swal2-styled.swal2-confirm {
+            border-radius: 12px !important;
+            background: var(--primary) !important;
+        }
+        .swal2-styled.swal2-cancel {
+            border-radius: 12px !important;
+        }
+        [data-theme="dark"] .swal2-popup { background: var(--card-bg) !important; color: var(--text-primary) !important; }
+        [data-theme="dark"] .swal2-title { color: var(--text-primary) !important; }
+        [data-theme="dark"] .swal2-html-container { color: var(--text-secondary) !important; }
+
+        /* NOTYF OVERRIDE */
+        .notyf__toast {
+            border-radius: 12px !important;
+            font-family: 'Inter', sans-serif !important;
+            font-weight: 600 !important;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.15) !important;
+        }
     </style>
     @stack('styles')
 </head>
 <body>
+    <!-- LOADING SCREEN -->
+    <div class="loading-screen" id="loadingScreen">
+        <div class="text-center">
+            <div class="loading-house"><i class="fas fa-home"></i></div>
+            <div class="loading-text">InmoTech</div>
+            <div class="loading-dots mt-2">
+                <span></span><span></span><span></span>
+            </div>
+        </div>
+    </div>
+
     <div class="scroll-progress"></div>
     <div class="cursor-follower"></div>
 
@@ -999,6 +1334,7 @@
                             </a>
                             <ul class="dropdown-menu dropdown-menu-end">
                                 <li><a class="dropdown-item" href="{{ route('dashboard') }}"><i class="fas fa-tachometer-alt me-2"></i>Mi Panel</a></li>
+                                <li><a class="dropdown-item" href="{{ route('profile.edit') }}"><i class="fas fa-user-cog me-2"></i>Mi Perfil</a></li>
                                 <li><hr class="dropdown-divider"></li>
                                 <li>
                                     <form method="POST" action="{{ route('logout') }}">
@@ -1091,13 +1427,102 @@
 
     <button class="scroll-top" id="scrollTop" aria-label="Subir"><i class="fas fa-arrow-up"></i></button>
 
+    <!-- WHATSAPP FLOATING BUTTON -->
+    <a href="https://wa.me/525512345678?text=Hola,%20me%20interesa%20InmoTech"
+       target="_blank"
+       class="whatsapp-float"
+       style="right: 100px"
+       title="Contactanos por WhatsApp"
+       aria-label="WhatsApp">
+        <i class="fab fa-whatsapp"></i>
+    </a>
+
+    <!-- QUICK VIEW MODAL -->
+    <div class="modal fade quick-view-modal" id="quickViewModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <button type="button" class="btn-close position-absolute" style="top:15px;right:15px;background:white;border-radius:50%;padding:0.6rem;z-index:10;opacity:1" data-bs-dismiss="modal"></button>
+                <div class="modal-body">
+                    <div id="quickViewContent">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-warning"></div>
+                            <p class="mt-2 text-muted">Cargando...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COMPARE WIDGET -->
+    <div class="compare-widget" id="compareWidget">
+        <div id="compareItems" class="d-flex gap-2"></div>
+        <div class="d-flex flex-column">
+            <small class="text-muted">Propiedades a comparar</small>
+            <strong id="compareCount">0 / 3</strong>
+        </div>
+        <button class="btn btn-warning btn-sm" id="compareGoBtn" disabled>
+            <i class="fas fa-balance-scale me-1"></i> Comparar
+        </button>
+        <button class="btn btn-link btn-sm text-danger p-0" id="compareClearBtn" title="Limpiar">
+            <i class="fas fa-times"></i>
+        </button>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/vanilla-tilt/1.8.0/vanilla-tilt.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@splidejs/splide@4.1.4/dist/js/splide.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/typed.js@2.1.0"></script>
     <script src="https://cdn.jsdelivr.net/npm/countup.js@2.8.0/dist/countUp.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/notyf@3/notyf.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/nouislider@15.7.1/dist/nouislider.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/driver.js@1.3.1/dist/driver.js.iife.js"></script>
     <script>
+        // LOADING SCREEN
+        window.addEventListener('load', () => {
+            setTimeout(() => {
+                document.getElementById('loadingScreen').classList.add('hidden');
+            }, 600);
+        });
+
+        // GLOBAL TOASTS (Notyf)
+        window.toast = new Notyf({
+            duration: 4000,
+            position: { x: 'right', y: 'top' },
+            ripple: true,
+            dismissible: true,
+            types: [
+                { type: 'success', background: 'linear-gradient(135deg,#10b981,#059669)', icon: { className: 'fas fa-check-circle', tagName: 'i', color: 'white' } },
+                { type: 'error', background: 'linear-gradient(135deg,#ef4444,#b91c1c)', icon: { className: 'fas fa-exclamation-circle', tagName: 'i', color: 'white' } },
+                { type: 'info', background: 'linear-gradient(135deg,#3b82f6,#1e40af)', icon: { className: 'fas fa-info-circle', tagName: 'i', color: 'white' } },
+                { type: 'warning', background: 'linear-gradient(135deg,#f59e0b,#d97706)', icon: { className: 'fas fa-exclamation-triangle', tagName: 'i', color: 'white' } }
+            ]
+        });
+
+        // CONFIRMACION MODERNA con SweetAlert2
+        window.confirmAction = (options = {}) => Swal.fire({
+            title: options.title || '¿Estas seguro?',
+            text: options.text || 'Esta accion no se puede deshacer',
+            icon: options.icon || 'warning',
+            showCancelButton: true,
+            confirmButtonText: options.confirmText || 'Si, continuar',
+            cancelButtonText: 'Cancelar',
+            confirmButtonColor: options.danger ? '#ef4444' : '#0f172a',
+            cancelButtonColor: '#9ca3af',
+            reverseButtons: true,
+        });
+
+        // Convertir alerts de Bootstrap en toasts
+        @if(session('success'))
+            toast.success(@json(session('success')));
+        @endif
+        @if(session('error'))
+            toast.error(@json(session('error')));
+        @endif
+
         // DARK MODE TOGGLE
         const savedTheme = localStorage.getItem('theme') || 'light';
         document.documentElement.setAttribute('data-theme', savedTheme);
@@ -1152,6 +1577,175 @@
                 max: 8, speed: 600, glare: true, 'max-glare': 0.15
             });
         }
+
+        // CONFETTI al completar registro
+        @if(session('show_confetti'))
+            setTimeout(() => {
+                if (typeof confetti !== 'undefined') {
+                    const duration = 3000;
+                    const end = Date.now() + duration;
+                    const colors = ['#f59e0b', '#d97706', '#fbbf24', '#ec4899', '#667eea'];
+                    (function frame() {
+                        confetti({ particleCount: 4, angle: 60, spread: 60, origin: { x: 0 }, colors });
+                        confetti({ particleCount: 4, angle: 120, spread: 60, origin: { x: 1 }, colors });
+                        if (Date.now() < end) requestAnimationFrame(frame);
+                    })();
+                    toast.success('¡Bienvenido a InmoTech! 🎉');
+                }
+            }, 800);
+        @endif
+
+        // TOUR GUIADO (primera visita)
+        @auth
+            @if(!session('tour_dismissed'))
+                if (!localStorage.getItem('tour_completed') && typeof driver !== 'undefined') {
+                    setTimeout(() => {
+                        const driverObj = driver.driver({
+                            showProgress: true,
+                            allowClose: true,
+                            nextBtnText: 'Siguiente →',
+                            prevBtnText: '← Anterior',
+                            doneBtnText: '¡Entendido!',
+                            popoverClass: 'driverjs-theme',
+                            steps: [
+                                { element: '.navbar-brand', popover: { title: '👋 ¡Bienvenido a InmoTech!', description: 'Te mostraremos las funciones principales en 30 segundos.' } },
+                                { element: '#searchInput', popover: { title: '🔍 Busqueda inteligente', description: 'Escribe aqui para encontrar propiedades, colonias o ciudades al instante.' } },
+                                { element: '#themeToggle', popover: { title: '🌙 Tema oscuro', description: 'Cambia entre modo claro y oscuro segun tu preferencia.' } },
+                                { element: '.nav-link[href*="propiedades"]', popover: { title: '🏠 Catalogo completo', description: 'Filtra por tipo, precio, zona y mas.' } },
+                                { element: '.whatsapp-float', popover: { title: '💬 Soporte 24/7', description: 'Contactanos por WhatsApp cuando lo necesites.' } },
+                            ],
+                            onDestroyed: () => localStorage.setItem('tour_completed', '1')
+                        });
+                        driverObj.drive();
+                    }, 1500);
+                }
+            @endif
+        @endauth
+
+        // QUICK VIEW MODAL
+        window.openQuickView = async (id) => {
+            const modal = new bootstrap.Modal(document.getElementById('quickViewModal'));
+            document.getElementById('quickViewContent').innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-warning"></div>
+                    <p class="mt-2 text-muted">Cargando...</p>
+                </div>
+            `;
+            modal.show();
+            try {
+                const res = await fetch(`/api/quick-view/${id}`);
+                if (res.ok) {
+                    document.getElementById('quickViewContent').innerHTML = await res.text();
+                } else {
+                    document.getElementById('quickViewContent').innerHTML = '<p class="text-center p-5 text-danger">Error al cargar</p>';
+                }
+            } catch (e) {
+                document.getElementById('quickViewContent').innerHTML = '<p class="text-center p-5 text-danger">Error de conexion</p>';
+            }
+        };
+
+        // SISTEMA DE COMPARADOR (localStorage)
+        window.compareSystem = {
+            key: 'compare_properties',
+            get() { return JSON.parse(localStorage.getItem(this.key) || '[]'); },
+            save(items) { localStorage.setItem(this.key, JSON.stringify(items)); this.render(); },
+            add(prop) {
+                let items = this.get();
+                if (items.find(p => p.id === prop.id)) return false;
+                if (items.length >= 3) {
+                    toast.error('Solo puedes comparar hasta 3 propiedades');
+                    return false;
+                }
+                items.push(prop);
+                this.save(items);
+                toast.success('Agregada al comparador');
+                return true;
+            },
+            remove(id) {
+                let items = this.get().filter(p => p.id !== id);
+                this.save(items);
+            },
+            clear() { this.save([]); toast.success('Comparador limpiado'); },
+            has(id) { return this.get().some(p => p.id === id); },
+            render() {
+                const widget = document.getElementById('compareWidget');
+                const itemsBox = document.getElementById('compareItems');
+                const count = document.getElementById('compareCount');
+                const goBtn = document.getElementById('compareGoBtn');
+                const items = this.get();
+                if (items.length === 0) {
+                    widget.classList.remove('show');
+                    return;
+                }
+                widget.classList.add('show');
+                itemsBox.innerHTML = items.map(p => `
+                    <div class="position-relative" title="${p.titulo}">
+                        <img src="${p.image}" class="compare-thumb">
+                        <button class="position-absolute top-0 end-0 btn-close" onclick="compareSystem.remove(${p.id})" style="background:white;border-radius:50%;padding:2px;font-size:0.5rem;border:1px solid var(--border-color);transform:translate(30%,-30%)"></button>
+                    </div>
+                `).join('');
+                count.textContent = `${items.length} / 3`;
+                goBtn.disabled = items.length < 2;
+                goBtn.onclick = () => {
+                    const ids = items.map(p => p.id).join(',');
+                    window.location = '{{ route("comparar") }}?ids=' + ids;
+                };
+
+                // Update card buttons
+                document.querySelectorAll('[data-compare-id]').forEach(btn => {
+                    const id = parseInt(btn.dataset.compareId);
+                    btn.classList.toggle('is-comparing', this.has(id));
+                });
+            }
+        };
+        document.getElementById('compareClearBtn').onclick = () => compareSystem.clear();
+        compareSystem.render();
+
+        // SISTEMA DE FAVORITOS (animacion + AJAX)
+        window.toggleFavorite = async (btn, propiedadId) => {
+            @auth
+                @if(auth()->user()->isCliente())
+                    btn.classList.toggle('is-favorite');
+                    const isFav = btn.classList.contains('is-favorite');
+                    try {
+                        const url = isFav
+                            ? `/cliente/favoritos/${propiedadId}`
+                            : `/cliente/favoritos/${propiedadId}`;
+                        const method = isFav ? 'POST' : 'DELETE';
+                        const res = await fetch(url, {
+                            method,
+                            headers: {
+                                'X-CSRF-TOKEN': document.querySelector('meta[name=csrf-token]').content,
+                                'Accept': 'application/json'
+                            }
+                        });
+                        if (res.ok) {
+                            toast.success(isFav ? 'Agregada a favoritos' : 'Eliminada de favoritos');
+                        } else {
+                            btn.classList.toggle('is-favorite');
+                        }
+                    } catch (e) {
+                        btn.classList.toggle('is-favorite');
+                        toast.error('Error de conexion');
+                    }
+                @else
+                    toast.warning('Solo los clientes pueden guardar favoritos');
+                @endif
+            @else
+                toast.info('Inicia sesion para guardar favoritos');
+                setTimeout(() => window.location = '{{ route("login") }}', 1500);
+            @endauth
+        };
+
+        window.toggleCompare = (btn, prop) => {
+            if (compareSystem.has(prop.id)) {
+                compareSystem.remove(prop.id);
+                btn.classList.remove('is-comparing');
+                toast.success('Eliminada del comparador');
+            } else {
+                if (compareSystem.add(prop)) btn.classList.add('is-comparing');
+            }
+        };
 
         // AUTOCOMPLETE NAVBAR
         (function() {
