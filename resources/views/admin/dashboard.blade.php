@@ -21,50 +21,78 @@
 <div class="container py-4">
     <!-- Stats principales -->
     <div class="row g-3 mb-4">
+        <!-- 1. Total Propiedades -->
         <div class="col-md-6 col-lg-2" data-aos="fade-up" data-aos-delay="50">
-            <div class="stat-card">
-                <div class="stat-icon primary"><i class="fas fa-home"></i></div>
-                <div class="stat-number">{{ $stats['total_propiedades'] }}</div>
-                <small class="text-muted">Total propiedades</small>
-            </div>
+            <a href="{{ route('admin.propiedades.index') }}" class="text-decoration-none">
+                <div class="stat-card border-0 shadow-sm transition-hover" style="cursor: pointer;">
+                    <div class="stat-icon primary"><i class="fas fa-home"></i></div>
+                    <div class="stat-number">{{ $stats['total_propiedades'] }}</div>
+                    <small class="text-muted d-block">Total propiedades</small>
+                    <span class="text-primary fw-bold" style="font-size: 0.7rem;">
+                        Administrar <i class="fas fa-chevron-right ms-1"></i>
+                    </span>
+                </div>
+            </a>
         </div>
+
+        <!-- 2. Propiedades Aprobadas -->
         <div class="col-md-6 col-lg-2" data-aos="fade-up" data-aos-delay="100">
-            <div class="stat-card">
-                <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
-                <div class="stat-number text-success">{{ $stats['propiedades_aprobadas'] }}</div>
-                <small class="text-muted">Aprobadas</small>
-            </div>
+            <a href="{{ route('admin.propiedades.index') }}" class="text-decoration-none">
+                <div class="stat-card border-0 shadow-sm transition-hover" style="cursor: pointer;">
+                    <div class="stat-icon success"><i class="fas fa-check-circle"></i></div>
+                    <div class="stat-number text-success">{{ $stats['propiedades_aprobadas'] }}</div>
+                    <small class="text-muted d-block">Aprobadas</small>
+                    <span class="text-success fw-bold" style="font-size: 0.7rem;">
+                        Ver todas <i class="fas fa-chevron-right ms-1"></i>
+                    </span>
+                </div>
+            </a>
         </div>
+
+        <!-- 3. Propiedades Pendientes -->
         <div class="col-md-6 col-lg-2" data-aos="fade-up" data-aos-delay="150">
-            <div class="stat-card">
-                <div class="stat-icon warning"><i class="fas fa-clock"></i></div>
-                <div class="stat-number" style="color: var(--accent-dark)">{{ $stats['propiedades_pendientes'] }}</div>
-                <small class="text-muted">Pendientes</small>
-            </div>
+            <a href="{{ route('admin.propiedades.index') }}" class="text-decoration-none">
+                <div class="stat-card border-0 shadow-sm transition-hover" style="cursor: pointer;">
+                    <div class="stat-icon warning"><i class="fas fa-clock"></i></div>
+                    <div class="stat-number" style="color: var(--accent-dark)">{{ $stats['propiedades_pendientes'] }}</div>
+                    <small class="text-muted d-block">Pendientes</small>
+                    <span class="text-warning fw-bold" style="font-size: 0.7rem;">
+                        Revisar <i class="fas fa-chevron-right ms-1"></i>
+                    </span>
+                </div>
+            </a>
         </div>
+
+        <!-- 4. Usuarios -->
         <div class="col-md-6 col-lg-2" data-aos="fade-up" data-aos-delay="200">
-            <div class="stat-card">
-                <div class="stat-icon primary"><i class="fas fa-users"></i></div>
-                <div class="stat-number">{{ $stats['total_usuarios'] }}</div>
-                <small class="text-muted">Usuarios</small>
-            </div>
+            <a href="{{ route('admin.usuarios.index', ['rol' => 'cliente']) }}" class="text-decoration-none">
+                <div class="stat-card border-0 shadow-sm transition-hover" style="cursor: pointer;">
+                    <div class="stat-icon primary"><i class="fas fa-users"></i></div>
+                    <div class="stat-number">{{ $stats['total_usuarios'] }}</div>
+                    <small class="text-muted d-block">Usuarios</small>
+                    <span class="text-primary fw-bold" style="font-size: 0.7rem;">
+                        Administrar <i class="fas fa-chevron-right ms-1"></i>
+                    </span>
+                </div>
+            </a> 
         </div>
+
+        <!-- 5. Agentes -->
         <div class="col-md-6 col-lg-2" data-aos="fade-up" data-aos-delay="250">
-            <div class="stat-card">
-                <div class="stat-icon primary"><i class="fas fa-user-tie"></i></div>
-                <div class="stat-number">{{ $stats['total_agentes'] }}</div>
-                <small class="text-muted">Agentes</small>
-            </div>
-        </div>
-        <div class="col-md-6 col-lg-2" data-aos="fade-up" data-aos-delay="300">
-            <div class="stat-card">
-                <div class="stat-icon warning"><i class="fas fa-calendar-check"></i></div>
-                <div class="stat-number">{{ $stats['visitas_mes'] }}</div>
-                <small class="text-muted">Visitas este mes</small>
-            </div>
+            <a href="{{ route('admin.usuarios.index', ['rol' => 'agente']) }}" class="text-decoration-none">
+                <div class="stat-card border-0 shadow-sm transition-hover" style="cursor: pointer;">
+                    <div class="stat-icon primary"><i class="fas fa-user-tie"></i></div>
+                    <div class="stat-number">{{ $stats['total_agentes'] }}</div>
+                    <small class="text-muted d-block">Agentes</small>
+                    <span class="text-primary fw-bold" style="font-size: 0.7rem;">
+                        Administrar <i class="fas fa-chevron-right ms-1"></i>
+                    </span>
+                </div>
+            </a>
         </div>
     </div>
 
+    <!-- Gráficas y Alertas -->
     <div class="row g-3">
         <div class="col-lg-7" data-aos="fade-right">
             <div class="card h-100">
@@ -98,6 +126,7 @@
         </div>
     </div>
 
+    <!-- Tabla Reciente -->
     <div class="card mt-4" data-aos="fade-up">
         <div class="card-header">
             <i class="fas fa-history text-accent me-2"></i>Propiedades recientes

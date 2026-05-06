@@ -14,8 +14,11 @@ use App\Http\Controllers\Public\ContactoController;
 use App\Http\Controllers\Public\HomeController;
 use App\Http\Controllers\Public\PropiedadPublicaController;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use App\Models\User;
 
-// ── PUBLICAS ─────────────────────────────────────────
+// ── PÚBLICAS ─────────────────────────────────────────
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/propiedades', [BusquedaController::class, 'index'])->name('propiedades.buscar');
 Route::get('/propiedades/{propiedad}', [PropiedadPublicaController::class, 'show'])->name('propiedades.show');
@@ -32,7 +35,7 @@ Route::middleware('guest')->group(function () {
 });
 Route::post('/logout', [AuthController::class, 'logout'])->middleware('auth')->name('logout');
 
-// ── DASHBOARD ────────────────────────────────────────
+// ── REDIRECCIÓN DASHBOARD ──────────────────────────
 Route::get('/dashboard', function () {
     $user = auth()->user();
     if ($user->isAdmin())   return redirect()->route('admin.dashboard');
@@ -54,10 +57,59 @@ Route::middleware(['auth', 'role:agente'])->prefix('agente')->name('agente.')->g
     Route::resource('propiedades', PropiedadController::class);
 });
 
-// ── PANEL ADMIN ──────────────────────────────────────
+// ── PANEL ADMIN (CORREGIDO) ──────────────────────────
 Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    
     Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    
+    // 🏠 Gestión de Propiedades
     Route::get('/propiedades', [PropiedadAprobacionController::class, 'index'])->name('propiedades.index');
+    Route::get('/propiedades/crear', function() { return "Formulario de creación"; })->name('propiedades.create');
+    
+    // Rutas para Editar y Actualizar (La pieza que faltaba)
+    Route::get('/propiedades/{propiedad}/editar', [PropiedadAprobacionController::class, 'edit'])->name('propiedades.edit');
+    Route::put('/propiedades/{propiedad}', [PropiedadAprobacionController::class, 'update'])->name('propiedades.update');
+    
+    // Acciones rápidas de la tabla
     Route::patch('/propiedades/{propiedad}/aprobar', [PropiedadAprobacionController::class, 'aprobar'])->name('propiedades.aprobar');
-    Route::delete('/propiedades/{propiedad}/rechazar', [PropiedadAprobacionController::class, 'rechazar'])->name('propiedades.rechazar');
+    Route::delete('/propiedades/{propiedad}', [PropiedadAprobacionController::class, 'rechazar'])->name('propiedades.destroy');
+
+    // 👥 Gestión de Usuarios
+    Route::get('/usuarios', function (Illuminate\Http\Request $request) {
+        $search = $request->query('search');
+        $rolFiltro = $request->query('rol'); 
+        $users = User::when($search, function ($query, $search) {
+            return $query->where('name', 'like', "%{$search}%")->orWhere('email', 'like', "%{$search}%");
+        })
+        ->when($rolFiltro, function ($query, $rolFiltro) {
+            $id = ($rolFiltro == 'agente') ? 2 : 3;
+            return $query->where('rol_id', $id);
+        })->get();
+        return view('admin.usuarios.index', compact('users', 'search', 'rolFiltro'));
+    })->name('usuarios.index');
+
+    Route::post('/usuarios', function (Illuminate\Http\Request $request) {
+        User::create([
+            'name' => $request->name,
+            'email' => $request->email,
+            'password' => Hash::make($request->password),
+            'rol_id' => $request->rol_id,
+        ]);
+        return back()->with('success', 'Usuario creado');
+    })->name('usuarios.store');
+
+    Route::get('/usuarios/{user}/edit', function (User $user) {
+        return view('usuarios.edit', compact('user'));
+    })->name('usuarios.edit');
+
+    Route::put('/usuarios/{user}', function (Illuminate\Http\Request $request, User $user) {
+        $user->update(['name' => $request->name, 'email' => $request->email, 'rol_id' => $request->rol_id]);
+        if ($request->filled('password')) { $user->update(['password' => Hash::make($request->password)]); }
+        return redirect()->route('admin.usuarios.index')->with('success', 'Usuario actualizado');
+    })->name('usuarios.update');
+
+    Route::delete('/usuarios/{user}', function (User $user) {
+        $user->delete();
+        return back()->with('success', 'Usuario eliminado');
+    })->name('usuarios.destroy');
 });

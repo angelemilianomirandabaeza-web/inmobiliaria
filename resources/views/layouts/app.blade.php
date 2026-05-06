@@ -155,27 +155,28 @@
         }
 
         /* CURSOR FOLLOWER */
+        /* CURSOR ESTABLE: No bloquea clics y permite ver el mouse real */
         .cursor-follower {
             position: fixed;
-            width: 30px; height: 30px;
-            border: 2px solid var(--accent);
+            width: 25px; height: 25px;
+            background: rgba(245, 158, 11, 0.3); 
             border-radius: 50%;
-            pointer-events: none;
-            z-index: 9998;
-            transition: transform 0.2s ease, width 0.3s, height 0.3s, background 0.3s;
+            pointer-events: none; /* EL CLIC PASA A TRAVÉS DEL CÍRCULO */
+            z-index: 10000;
+            transition: width 0.3s, height 0.3s, background 0.3s;
             transform: translate(-50%, -50%);
-            mix-blend-mode: difference;
             display: none;
         }
         @media (min-width: 992px) {
             .cursor-follower { display: block; }
-            body, a, button { cursor: none !important; }
+            /* Flecha real siempre visible */
         }
         .cursor-follower.expand {
-            width: 60px; height: 60px;
-            background: var(--accent);
-            border-color: transparent;
+            width: 50px; height: 50px;
+            background: rgba(245, 158, 11, 0.1);
+            border: 2px solid var(--accent);
         }
+       
 
         /* NAVBAR */
         .navbar {
@@ -950,6 +951,29 @@
         }
     </style>
     @stack('styles')
+    <style>
+    /* Parche definitivo de estabilidad para el mouse */
+    html, body {
+        cursor: auto !important; /* La flecha de Windows SIEMPRE visible */
+        height: auto !important;
+        min-height: 100% !important;
+        overflow-x: hidden !important;
+    }
+
+    /* ELIMINADO EL CURSOR: NONE */
+    body {
+        cursor: default !important; 
+    }
+
+    /* El círculo naranja es solo un efecto visual, no bloquea nada */
+    .cursor-follower {
+        pointer-events: none !important; /* Los clics pasan a través de él */
+        z-index: 10000;
+        position: fixed;
+        transform: translate(-50%, -50%);
+    }
+</style>
+    
 </head>
 <body>
     <div class="scroll-progress"></div>
@@ -972,11 +996,14 @@
                 </ul>
 
                 <!-- SEARCH AUTOCOMPLETE -->
+                <!-- SEARCH AUTOCOMPLETE (Modificado para no estorbar en Admin) -->
+                @if(!request()->is('admin*'))
                 <div class="navbar-search me-3" id="navbarSearch">
                     <i class="fas fa-search navbar-search-icon"></i>
                     <input type="text" class="navbar-search-input" id="searchInput" placeholder="Buscar propiedades, colonias..." autocomplete="off">
                     <div class="navbar-search-results" id="searchResults"></div>
                 </div>
+                    @endif
 
                 <ul class="navbar-nav align-items-lg-center">
                     <li class="nav-item me-2">
@@ -1265,6 +1292,10 @@
             }
         })();
     </script>
+    <!-- 1. LA PIEZA QUE FALTA: La librería de alertas -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    @stack('scripts')
     @stack('scripts')
 </body>
 </html>
