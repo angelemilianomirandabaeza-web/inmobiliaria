@@ -168,8 +168,8 @@ class PropiedadController extends Controller
 
     private function authorize_owner(Propiedad $propiedad): void
     {
-        if ($propiedad->agente_id !== auth()->user()->agente->id) {
-            abort(403);
+        if ($propiedad->agente_id != auth()->user()->agente->id) {
+            abort(403, 'Acceso denegado: Esta propiedad le pertenece a otro agente.');
         }
     }
 }

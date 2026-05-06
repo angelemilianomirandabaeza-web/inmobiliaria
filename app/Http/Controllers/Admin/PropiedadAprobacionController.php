@@ -28,4 +28,12 @@ class PropiedadAprobacionController extends Controller
         $propiedad->delete();
         return back()->with('success', 'Propiedad rechazada y eliminada.');
     }
+
+    public function destroy(Propiedad $propiedad)
+    {
+        // El admin tiene poder absoluto, así que borramos directamente
+        $propiedad->delete();
+        
+        return back()->with('success', 'Propiedad eliminada permanentemente del sistema.');
+    }
 }

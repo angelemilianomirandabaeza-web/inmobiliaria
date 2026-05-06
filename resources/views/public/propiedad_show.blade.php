@@ -182,6 +182,18 @@
         </div>
 
         <div class="col-lg-4">
+            @php
+                $esElDueno = auth()->check() && auth()->user()->isAgente() && auth()->user()->agente->id === $propiedad->agente_id;
+            @endphp
+
+            @if($esElDueno)
+                <div class="alert alert-info border-0 shadow-sm mb-4">
+                    <i class="fas fa-info-circle me-2"></i> <strong>Modo Vista Previa:</strong> Estas viendo tu propia propiedad tal como la ven los clientes. 
+                    <a href="{{ route('agente.propiedades.edit', $propiedad) }}" class="alert-link ms-2">Editar propiedad</a>
+                </div>
+            @endif
+
+            @if(!$esElDueno)
             <!-- Acciones -->
             <div class="d-flex gap-2 mb-3" data-aos="fade-up">
                 @auth
@@ -196,10 +208,23 @@
                 <button class="btn btn-outline-primary" onclick="navigator.share && navigator.share({url: window.location.href, title: '{{ $propiedad->titulo }}'}) || navigator.clipboard.writeText(window.location.href).then(() => toast.success('Enlace copiado'))" title="Compartir">
                     <i class="fas fa-share-alt"></i>
                 </button>
+                @auth
+                    @if(auth()->user()->isCliente())
+                        <form method="POST" action="{{ route('cliente.favoritos.store', $propiedad) }}" class="d-inline">
+                            @csrf
+                            <button type="submit" class="btn btn-outline-danger" title="Añadir a favoritos">
+                                <i class="fas fa-heart"></i>
+                            </button>
+                        </form>
+                    @endif
+                @endauth
             </div>
+            @endif
 
             @auth
+
                 @if(auth()->user()->isCliente())
+                @if(!$esElDueno)
                 <!-- Modal: Agendar visita -->
                 <div class="modal fade" id="agendarVisitaModal" tabindex="-1">
                     <div class="modal-dialog modal-dialog-centered">
@@ -241,8 +266,10 @@
                     </div>
                 </div>
                 @endif
+                @endif
             @endauth
 
+            @if(!$esElDueno)
             <!-- Agente -->
             <div class="card mb-3" data-aos="fade-up" data-aos-delay="100">
                 <div class="card-body">
@@ -312,7 +339,9 @@
                     @endauth
                 </div>
             </div>
+            @endif
 
+            @if(!$esElDueno)
             <!-- Contacto -->
             <div class="card mb-3" data-aos="fade-up" data-aos-delay="150">
                 <div class="card-header">
@@ -337,6 +366,7 @@
                     </form>
                 </div>
             </div>
+            @endif
 
             <!-- Calculadora hipoteca -->
             <div class="card" data-aos="fade-up" data-aos-delay="200">

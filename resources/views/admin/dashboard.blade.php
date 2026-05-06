@@ -112,6 +112,7 @@
                             <th>Tipo</th>
                             <th>Precio</th>
                             <th>Estado</th>
+                            <th class="text-end pe-4">Acciones</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -135,6 +136,15 @@
                                     @else
                                         <span class="badge bg-warning text-dark">Pendiente</span>
                                     @endif
+                                </td>
+                                <td class="text-end pe-4">
+                                    <form method="POST" action="{{ route('admin.propiedades.destroy', $p) }}" onsubmit="return confirm('¿Estás seguro de eliminar esta propiedad permanentemente del sistema?');">
+                                        @csrf 
+                                        @method('DELETE')
+                                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Eliminar propiedad">
+                                            <i class="fas fa-trash-alt"></i> Borrar
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                         @endforeach

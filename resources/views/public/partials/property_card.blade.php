@@ -8,21 +8,27 @@
                 <span class="badge-destacada"><i class="fas fa-star me-1"></i>Destacada</span>
             @endif
         </div>
-        <div class="position-absolute top-0 end-0 m-3 d-flex flex-column gap-2 align-items-end">
+<div class="position-absolute top-0 end-0 m-3 d-flex flex-column gap-2 align-items-end" style="z-index: 10;">
             <span class="badge-operacion">{{ $p->tipoOperacion->nombre }}</span>
+            
+            <!-- Botón Favoritos Original -->
             <button type="button"
                     class="heart-btn"
                     onclick="event.stopPropagation(); toggleFavorite(this, {{ $p->id }})"
                     title="Agregar a favoritos">
                 <i class="fas fa-heart"></i>
             </button>
+
+            <!-- Botón Comparar Original -->
             <button type="button"
                     class="compare-btn"
                     data-compare-id="{{ $p->id }}"
-                    onclick="event.stopPropagation(); toggleCompare(this, {id: {{ $p->id }}, titulo: @json($p->titulo), image: @json($p->imagenPrincipal->url_imagen ?? 'https://picsum.photos/200')})"
+                    onclick="event.stopPropagation(); toggleCompare(this, {id: {{ $p->id }}, titulo: '{{ addslashes($p->titulo) }}', image: '{{ $p->imagenPrincipal->url_imagen ?? 'https://picsum.photos/200' }}'})"
                     title="Agregar al comparador">
                 <i class="fas fa-balance-scale"></i>
             </button>
+
+            <!-- Botón Vista Rápida -->
             <button type="button"
                     class="compare-btn"
                     onclick="event.stopPropagation(); openQuickView({{ $p->id }})"

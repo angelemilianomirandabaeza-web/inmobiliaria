@@ -33,7 +33,7 @@ class VisitaController extends Controller
             'agente_id'         => $propiedad->agente_id,
             'fecha_visita'      => $data['fecha_visita'],
             'hora_inicio'       => $data['hora_inicio'],
-            'estado_visita_id'  => 1, // Pendiente
+            'estado_visita_id'  => \App\Models\EstadoVisita::where('nombre', 'Pendiente')->value('id'),
             'notas_cliente'     => $data['notas_cliente'] ?? null,
         ]);
 
@@ -46,7 +46,8 @@ class VisitaController extends Controller
             abort(403);
         }
 
-        $visita->update(['estado_visita_id' => 4]); // Cancelada
+        $estadoCancelada = \App\Models\EstadoVisita::where('nombre', 'Cancelada')->value('id');
+        $visita->update(['estado_visita_id' => $estadoCancelada]);
 
         return back()->with('success', 'Visita cancelada correctamente.');
     }

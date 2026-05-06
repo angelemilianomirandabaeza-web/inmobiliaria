@@ -80,6 +80,28 @@
                                 </div>
                                 <span class="badge bg-secondary align-self-start">{{ $v->estadoVisita->nombre }}</span>
                             </div>
+                            <!-- BOTONES DE ACEPTAR / RECHAZAR -->
+                                @if($v->estadoVisita->nombre === 'Pendiente')
+                                    <div class="d-flex gap-2 mt-3">
+                                        <form method="POST" action="{{ route('agente.visitas.update-estado', $v) }}">
+                                            @csrf 
+                                            @method('PATCH')
+                                            <input type="hidden" name="estado" value="Confirmada">
+                                            <button type="submit" class="btn btn-sm btn-success">
+                                                <i class="fas fa-check"></i> Confirmar
+                                            </button>
+                                        </form>
+
+                                        <form method="POST" action="{{ route('agente.visitas.update-estado', $v) }}">
+                                            @csrf 
+                                            @method('PATCH')
+                                            <input type="hidden" name="estado" value="Cancelada">
+                                            <button type="submit" class="btn btn-sm btn-outline-danger">
+                                                <i class="fas fa-times"></i> Rechazar
+                                            </button>
+                                        </form>
+                                    </div>
+                                @endif
                         @endforeach
                     @endif
                 </div>

@@ -81,12 +81,14 @@ Route::middleware(['auth', 'role:cliente'])->prefix('cliente')->name('cliente.')
 // ── PANEL AGENTE ─────────────────────────────────────
 Route::middleware(['auth', 'role:agente'])->prefix('agente')->name('agente.')->group(function () {
     Route::get('/dashboard', [AgenteDashboardController::class, 'index'])->name('dashboard');
-    Route::resource('propiedades', PropiedadController::class);
-
+    Route::resource('propiedades', PropiedadController::class)->parameters([
+        'propiedades' => 'propiedad'
+    ]);
     Route::get('/pipeline', [PipelineController::class, 'index'])->name('pipeline.index');
     Route::post('/pipeline', [PipelineController::class, 'store'])->name('pipeline.store');
     Route::patch('/pipeline/{pipeline}/etapa', [PipelineController::class, 'updateEtapa'])->name('pipeline.update-etapa');
     Route::delete('/pipeline/{pipeline}', [PipelineController::class, 'destroy'])->name('pipeline.destroy');
+    Route::patch('/visitas/{visita}/estado', [\App\Http\Controllers\Agente\VisitaController::class, 'updateEstado'])->name('visitas.update-estado');
 });
 
 // ── PANEL ADMIN ──────────────────────────────────────
@@ -96,4 +98,5 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/propiedades', [PropiedadAprobacionController::class, 'index'])->name('propiedades.index');
     Route::patch('/propiedades/{propiedad}/aprobar', [PropiedadAprobacionController::class, 'aprobar'])->name('propiedades.aprobar');
     Route::delete('/propiedades/{propiedad}/rechazar', [PropiedadAprobacionController::class, 'rechazar'])->name('propiedades.rechazar');
+    Route::delete('/propiedades/{propiedad}', [PropiedadAprobacionController::class, 'destroy'])->name('propiedades.destroy');
 });
