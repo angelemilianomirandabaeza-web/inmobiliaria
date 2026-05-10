@@ -28,11 +28,11 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/propiedades', [BusquedaController::class, 'index'])->name('propiedades.buscar');
 Route::get('/propiedades/{propiedad}', [PropiedadPublicaController::class, 'show'])->name('propiedades.show');
 Route::get('/comparar', [ComparadorController::class, 'index'])->name('comparar');
-Route::post('/contacto/{propiedad}', [ContactoController::class, 'store'])->name('contacto.store');
+Route::post('/contacto/{propiedad}', [ContactoController::class, 'store'])->middleware('throttle:5,1')->name('contacto.store');
 Route::get('/busqueda-exterior', [BusquedaExteriorController::class, 'index'])->name('busqueda.exterior');
-Route::get('/api/autocomplete', [AutocompleteController::class, 'search'])->name('api.autocomplete');
-Route::get('/api/quick-view/{propiedad}', [QuickViewController::class, 'show'])->name('api.quick-view');
-Route::get('/api/mapa-propiedades', [QuickViewController::class, 'mapData'])->name('api.mapa-propiedades');
+Route::get('/api/autocomplete', [AutocompleteController::class, 'search'])->middleware('throttle:60,1')->name('api.autocomplete');
+Route::get('/api/quick-view/{propiedad}', [QuickViewController::class, 'show'])->middleware('throttle:60,1')->name('api.quick-view');
+Route::get('/api/mapa-propiedades', [QuickViewController::class, 'mapData'])->middleware('throttle:30,1')->name('api.mapa-propiedades');
 
 // SEO
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);

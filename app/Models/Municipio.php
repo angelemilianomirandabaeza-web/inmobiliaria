@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 
 class Municipio extends Model
 {
@@ -19,5 +20,10 @@ class Municipio extends Model
     public function colonias(): HasMany
     {
         return $this->hasMany(Colonia::class);
+    }
+
+    public function propiedades(): HasManyThrough
+    {
+        return $this->hasManyThrough(Propiedad::class, Colonia::class);
     }
 }

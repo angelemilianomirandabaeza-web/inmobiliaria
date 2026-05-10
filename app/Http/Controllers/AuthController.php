@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\Request;
@@ -26,6 +27,13 @@ class AuthController extends Controller
         ]);
 
         if (Auth::attempt($credentials, $request->boolean('remember'))) {
+            if (!Auth::user()->activo) {
+                Auth::logout();
+                $request->session()->invalidate();
+                return back()->withErrors([
+                    'email' => 'Tu cuenta ha sido desactivada. Contacta al administrador.',
+                ])->onlyInput('email');
+            }
             $request->session()->regenerate();
             return redirect()->intended(route('dashboard'));
         }
@@ -54,7 +62,7 @@ class AuthController extends Controller
             'email'    => $data['email'],
             'telefono' => $data['telefono'] ?? null,
             'password' => Hash::make($data['password']),
-            'rol_id'   => 3, // cliente
+            'rol_id'   => Role::where('nombre', 'cliente')->value('id'),
             'activo'   => true,
         ]);
 
