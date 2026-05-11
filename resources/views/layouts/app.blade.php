@@ -1304,6 +1304,7 @@
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Inicio</a></li>
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('propiedades.*') ? 'active' : '' }}" href="{{ route('propiedades.buscar') }}">Propiedades</a></li>
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('comparar') ? 'active' : '' }}" href="{{ route('comparar') }}">Comparar</a></li>
+                    <li class="nav-item"><a class="nav-link {{ request()->routeIs('busqueda.exterior') ? 'active' : '' }}" href="{{ route('busqueda.exterior') }}"><i class="fas fa-globe-americas me-1 opacity-75"></i>Portales</a></li>
                 </ul>
 
                 <!-- SEARCH AUTOCOMPLETE -->

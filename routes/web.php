@@ -14,6 +14,7 @@ use App\Http\Controllers\Cliente\VisitaController as ClienteVisitaController;
 use App\Http\Controllers\Cliente\AlertaController;
 use App\Http\Controllers\Cliente\ResenaController;
 use App\Http\Controllers\Public\BusquedaController;
+use App\Http\Controllers\Public\BusquedaExteriorController;
 use App\Http\Controllers\Public\ComparadorController;
 use App\Http\Controllers\Public\ContactoController;
 use App\Http\Controllers\Public\HomeController;
@@ -27,6 +28,7 @@ Route::get('/propiedades', [BusquedaController::class, 'index'])->name('propieda
 Route::get('/propiedades/{propiedad}', [PropiedadPublicaController::class, 'show'])->name('propiedades.show');
 Route::get('/comparar', [ComparadorController::class, 'index'])->name('comparar');
 Route::post('/contacto/{propiedad}', [ContactoController::class, 'store'])->name('contacto.store');
+Route::get('/busqueda-exterior', [BusquedaExteriorController::class, 'index'])->name('busqueda.exterior');
 Route::get('/api/autocomplete', [AutocompleteController::class, 'search'])->name('api.autocomplete');
 Route::get('/api/quick-view/{propiedad}', [QuickViewController::class, 'show'])->name('api.quick-view');
 Route::get('/api/mapa-propiedades', [QuickViewController::class, 'mapData'])->name('api.mapa-propiedades');
