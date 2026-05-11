@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminAgenteController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Api\AutocompleteController;
 use App\Http\Controllers\Api\QuickViewController;
@@ -14,6 +15,7 @@ use App\Http\Controllers\Cliente\VisitaController as ClienteVisitaController;
 use App\Http\Controllers\Cliente\AlertaController;
 use App\Http\Controllers\Cliente\ResenaController;
 use App\Http\Controllers\Public\BusquedaController;
+use App\Http\Controllers\Public\BusquedaExteriorController;
 use App\Http\Controllers\Public\ComparadorController;
 use App\Http\Controllers\Public\ContactoController;
 use App\Http\Controllers\Public\HomeController;
@@ -27,6 +29,7 @@ Route::get('/propiedades', [BusquedaController::class, 'index'])->name('propieda
 Route::get('/propiedades/{propiedad}', [PropiedadPublicaController::class, 'show'])->name('propiedades.show');
 Route::get('/comparar', [ComparadorController::class, 'index'])->name('comparar');
 Route::post('/contacto/{propiedad}', [ContactoController::class, 'store'])->name('contacto.store');
+Route::get('/busqueda-exterior', [BusquedaExteriorController::class, 'index'])->name('busqueda.exterior');
 Route::get('/api/autocomplete', [AutocompleteController::class, 'search'])->name('api.autocomplete');
 Route::get('/api/quick-view/{propiedad}', [QuickViewController::class, 'show'])->name('api.quick-view');
 Route::get('/api/mapa-propiedades', [QuickViewController::class, 'mapData'])->name('api.mapa-propiedades');
@@ -99,4 +102,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::patch('/propiedades/{propiedad}/aprobar', [PropiedadAprobacionController::class, 'aprobar'])->name('propiedades.aprobar');
     Route::delete('/propiedades/{propiedad}/rechazar', [PropiedadAprobacionController::class, 'rechazar'])->name('propiedades.rechazar');
     Route::delete('/propiedades/{propiedad}', [PropiedadAprobacionController::class, 'destroy'])->name('propiedades.destroy');
+
+    // Gestión de agentes
+    Route::resource('agentes', AdminAgenteController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+    Route::patch('/agentes/{agente}/toggle-activo', [AdminAgenteController::class, 'toggleActivo'])->name('agentes.toggle-activo');
 });

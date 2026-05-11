@@ -1303,7 +1303,6 @@
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">Inicio</a></li>
                     <li class="nav-item"><a class="nav-link {{ request()->routeIs('propiedades.*') ? 'active' : '' }}" href="{{ route('propiedades.buscar') }}">Propiedades</a></li>
-                    <li class="nav-item"><a class="nav-link {{ request()->routeIs('comparar') ? 'active' : '' }}" href="{{ route('comparar') }}">Comparar</a></li>
                 </ul>
 
                 <!-- SEARCH AUTOCOMPLETE -->

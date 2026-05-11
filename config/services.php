@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'google_cse' => [
+        'key' => env('GOOGLE_CSE_KEY'),
+        'id'  => env('GOOGLE_CSE_ID'),
+    ],
+
 ];
