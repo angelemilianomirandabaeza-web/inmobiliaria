@@ -16,7 +16,7 @@ class ExternalSearchController extends Controller
 
         // Ejecutar todas las busquedas en paralelo
         try {
-            [$ml, $lamudi, $vivanuncios, $google] = Http::pool(fn($pool) => [
+            $responses = Http::pool(fn($pool) => [
                 $pool->as('mercadolibre')->timeout(8)->get(
                     'https://api.mercadolibre.com/sites/MLM/search',
                     $this->paramsML($request)
@@ -33,10 +33,10 @@ class ExternalSearchController extends Controller
                 ),
             ]);
 
-            $fuentes[] = $this->parseMercadoLibre($ml);
-            $fuentes[] = $this->parseLamudi($lamudi);
-            $fuentes[] = $this->parseVivanuncios($vivanuncios);
-            $fuentes[] = $this->parseGoogle($google);
+            $fuentes[] = $this->parseMercadoLibre($responses['mercadolibre'] ?? null);
+            $fuentes[] = $this->parseLamudi($responses['lamudi'] ?? null);
+            $fuentes[] = $this->parseVivanuncios($responses['vivanuncios'] ?? null);
+            $fuentes[] = $this->parseGoogle($responses['google'] ?? null);
 
         } catch (\Throwable $e) {
             Log::warning('ExternalSearch pool error: ' . $e->getMessage());
