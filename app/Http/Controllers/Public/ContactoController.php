@@ -30,7 +30,7 @@ class ContactoController extends Controller
         // Enviar email al agente (usa driver "log" en .env por defecto)
         try {
             $emailAgente = $propiedad->agente->usuario->email;
-            Mail::to($emailAgente)->send(new NuevaSolicitudContacto($solicitud));
+            Mail::to($emailAgente)->queue(new NuevaSolicitudContacto($solicitud));
         } catch (\Throwable $e) {
             Log::warning('No se pudo enviar email de contacto: ' . $e->getMessage());
         }

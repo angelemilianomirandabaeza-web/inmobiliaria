@@ -145,7 +145,8 @@
             </div>
 
             <!-- VISTA GRID -->
-            <div id="gridView">
+            <div id="gridView" data-external-url="{{ route('api.busqueda-externa') }}"
+                 data-params="{{ json_encode(request()->only(['busqueda','tipo_operacion_id','precio_min','precio_max','habitaciones','banios'])) }}">
                 @if($propiedades->isEmpty())
                     <div class="text-center py-5">
                         <i class="fas fa-search-minus text-muted" style="font-size: 4rem; opacity: 0.3"></i>
@@ -165,6 +166,29 @@
                         {{ $propiedades->links() }}
                     </div>
                 @endif
+
+                {{-- Resultados externos --}}
+                <div id="externalResults" class="mt-5" style="display:none">
+                    <hr class="my-4">
+                    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
+                        <h5 class="mb-0 fw-bold">
+                            <span class="badge me-2" style="background:#ffe600;color:#333;font-size:.8rem">MERCADO LIBRE</span>
+                            Propiedades en internet
+                        </h5>
+                        <small class="text-muted" id="externalCount"></small>
+                    </div>
+                    <div id="externalGrid" class="row g-4"></div>
+                    <p class="text-muted small mt-3"><i class="fas fa-info-circle me-1"></i>Resultados obtenidos de Mercado Libre Mexico. InmoTech no es responsable de los listados externos.</p>
+                </div>
+                <div id="externalLoading" class="text-center py-4 mt-4" style="display:none">
+                    <div class="spinner-border text-warning" role="status"></div>
+                    <p class="text-muted mt-2 mb-0 small">Buscando en internet...</p>
+                </div>
+                <div id="externalError" class="mt-4" style="display:none">
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-2"></i>No se pudieron cargar resultados externos en este momento.
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -297,5 +321,71 @@ function formatPrice(p) {
     if (p >= 1000) return Math.round(p/1000) + 'K';
     return p;
 }
+
+// BUSQUEDA EXTERNA
+(async function loadExternalResults() {
+    const gridEl  = document.getElementById('gridView');
+    const baseUrl = gridEl.dataset.externalUrl;
+    const params  = JSON.parse(gridEl.dataset.params || '{}');
+
+    // Solo buscar si hay algun filtro activo o busqueda
+    if (!Object.values(params).some(v => v)) return;
+
+    document.getElementById('externalLoading').style.display = 'block';
+
+    try {
+        const qs = new URLSearchParams(params).toString();
+        const res = await fetch(baseUrl + '?' + qs);
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+
+        const data = await res.json();
+
+        document.getElementById('externalLoading').style.display = 'none';
+
+        if (data.error || !data.resultados || data.resultados.length === 0) return;
+
+        document.getElementById('externalCount').textContent = data.total.toLocaleString() + ' resultados encontrados';
+        document.getElementById('externalResults').style.display = 'block';
+
+        const grid = document.getElementById('externalGrid');
+        data.resultados.forEach(p => {
+            const precio = p.moneda === 'USD'
+                ? 'USD ' + p.precio.toLocaleString('en-US')
+                : '$' + p.precio.toLocaleString('es-MX');
+
+            const card = document.createElement('div');
+            card.className = 'col-md-6 col-lg-4';
+            card.innerHTML = `
+                <div class="property-card h-100 position-relative">
+                    <span class="position-absolute top-0 end-0 m-2 badge" style="background:#ffe600;color:#333;z-index:2;font-size:.65rem">MERCADO LIBRE</span>
+                    <div class="property-image-wrapper overflow-hidden rounded-top" style="height:180px">
+                        <img src="${p.imagen || 'https://picsum.photos/400/200?grayscale'}"
+                             class="w-100 h-100" style="object-fit:cover"
+                             onerror="this.src='https://picsum.photos/400/200?grayscale'">
+                    </div>
+                    <div class="p-3">
+                        <p class="property-tipo mb-1">${p.tipo}</p>
+                        <h6 class="property-title mb-1" style="font-size:.9rem;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${p.titulo}</h6>
+                        <p class="text-muted small mb-2"><i class="fas fa-map-marker-alt me-1"></i>${p.ubicacion}</p>
+                        <div class="d-flex gap-3 text-muted mb-2" style="font-size:.78rem">
+                            ${p.habitaciones ? `<span><i class="fas fa-bed me-1"></i>${p.habitaciones}</span>` : ''}
+                            ${p.banios ? `<span><i class="fas fa-bath me-1"></i>${p.banios}</span>` : ''}
+                            ${p.metros ? `<span><i class="fas fa-ruler me-1"></i>${p.metros}</span>` : ''}
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mt-auto">
+                            <span class="price-tag" style="font-size:1rem">${precio}</span>
+                            <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-warning">
+                                Ver <i class="fas fa-external-link-alt ms-1" style="font-size:.7rem"></i>
+                            </a>
+                        </div>
+                    </div>
+                </div>`;
+            grid.appendChild(card);
+        });
+    } catch (e) {
+        document.getElementById('externalLoading').style.display = 'none';
+        document.getElementById('externalError').style.display = 'block';
+    }
+})();
 </script>
 @endpush

@@ -14,6 +14,8 @@
                 <a href="{{ route('admin.reporte') }}" class="btn btn-warning"><i class="fas fa-file-invoice me-1"></i> Reporte</a>
                 <a href="{{ route('admin.propiedades.index') }}" class="btn btn-outline-light"><i class="fas fa-tasks me-1"></i> Aprobaciones</a>
                 <a href="{{ route('admin.agentes.index') }}" class="btn btn-outline-light"><i class="fas fa-user-tie me-1"></i> Agentes</a>
+                <a href="{{ route('admin.contratos.index') }}" class="btn btn-outline-light"><i class="fas fa-file-contract me-1"></i> Contratos</a>
+                <a href="{{ route('admin.usuarios.index') }}" class="btn btn-outline-light"><i class="fas fa-users me-1"></i> Usuarios</a>
             </div>
         </div>
     </div>

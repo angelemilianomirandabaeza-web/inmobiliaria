@@ -2,7 +2,10 @@
 
 use App\Http\Controllers\Admin\AdminAgenteController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\ContratoController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Api\AutocompleteController;
+use App\Http\Controllers\Api\ExternalSearchController;
 use App\Http\Controllers\Api\QuickViewController;
 use App\Http\Controllers\Admin\PropiedadAprobacionController;
 use App\Http\Controllers\Agente\AgenteDashboardController;
@@ -33,6 +36,7 @@ Route::get('/busqueda-exterior', [BusquedaExteriorController::class, 'index'])->
 Route::get('/api/autocomplete', [AutocompleteController::class, 'search'])->middleware('throttle:60,1')->name('api.autocomplete');
 Route::get('/api/quick-view/{propiedad}', [QuickViewController::class, 'show'])->middleware('throttle:60,1')->name('api.quick-view');
 Route::get('/api/mapa-propiedades', [QuickViewController::class, 'mapData'])->middleware('throttle:30,1')->name('api.mapa-propiedades');
+Route::get('/api/busqueda-externa', [ExternalSearchController::class, 'search'])->middleware('throttle:20,1')->name('api.busqueda-externa');
 
 // SEO
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
@@ -106,4 +110,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Gestión de agentes
     Route::resource('agentes', AdminAgenteController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     Route::patch('/agentes/{agente}/toggle-activo', [AdminAgenteController::class, 'toggleActivo'])->name('agentes.toggle-activo');
+
+    // Contratos
+    Route::resource('contratos', ContratoController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
+
+    // Gestión de usuarios
+    Route::resource('usuarios', UserController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
+         ->parameters(['usuarios' => 'usuario']);
+    Route::patch('/usuarios/{usuario}/toggle', [UserController::class, 'toggleActivo'])->name('usuarios.toggle');
 });
