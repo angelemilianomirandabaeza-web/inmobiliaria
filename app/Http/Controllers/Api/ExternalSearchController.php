@@ -10,107 +10,258 @@ use Illuminate\Support\Facades\Log;
 
 class ExternalSearchController extends Controller
 {
-    // Categoria de Inmuebles en Mercado Libre Mexico
-    private const ML_CATEGORY = 'MLM1459';
-    private const ML_SEARCH_URL = 'https://api.mercadolibre.com/sites/MLM/search';
-
     public function search(Request $request): JsonResponse
     {
-        $params = $this->buildParams($request);
+        $fuentes = [];
 
+        // Ejecutar todas las busquedas en paralelo
         try {
-            $response = Http::timeout(8)
-                ->get(self::ML_SEARCH_URL, $params);
-
-            if (!$response->successful()) {
-                return response()->json(['resultados' => [], 'total' => 0, 'fuente' => 'mercadolibre']);
-            }
-
-            $data     = $response->json();
-            $items    = $data['results'] ?? [];
-            $total    = $data['paging']['total'] ?? 0;
-            $sanitized = array_map(fn($item) => $this->sanitizeItem($item), array_slice($items, 0, 12));
-
-            return response()->json([
-                'resultados' => $sanitized,
-                'total'      => $total,
-                'fuente'     => 'mercadolibre',
+            [$ml, $lamudi, $vivanuncios, $google] = Http::pool(fn($pool) => [
+                $pool->as('mercadolibre')->timeout(8)->get(
+                    'https://api.mercadolibre.com/sites/MLM/search',
+                    $this->paramsML($request)
+                ),
+                $pool->as('lamudi')->timeout(8)
+                    ->withHeaders(['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest'])
+                    ->get('https://www.lamudi.com.mx/api/1.0.0/listings/', $this->paramsLamudi($request)),
+                $pool->as('vivanuncios')->timeout(8)
+                    ->withHeaders(['Accept' => 'application/json'])
+                    ->get('https://api.vivanuncios.com.mx/v2/private/items', $this->paramsVivanuncios($request)),
+                $pool->as('google')->timeout(8)->get(
+                    'https://www.googleapis.com/customsearch/v1',
+                    $this->paramsGoogle($request)
+                ),
             ]);
 
+            $fuentes[] = $this->parseMercadoLibre($ml);
+            $fuentes[] = $this->parseLamudi($lamudi);
+            $fuentes[] = $this->parseVivanuncios($vivanuncios);
+            $fuentes[] = $this->parseGoogle($google);
+
         } catch (\Throwable $e) {
-            Log::warning('ExternalSearch error: ' . $e->getMessage());
-            return response()->json(['resultados' => [], 'total' => 0, 'fuente' => 'mercadolibre', 'error' => true]);
+            Log::warning('ExternalSearch pool error: ' . $e->getMessage());
         }
+
+        // Filtrar fuentes vacias / fallidas
+        $fuentes = array_values(array_filter($fuentes, fn($f) => $f !== null && !empty($f['resultados'])));
+
+        return response()->json(['fuentes' => $fuentes]);
     }
 
-    private function buildParams(Request $request): array
+    // ── MERCADO LIBRE ──────────────────────────────────────────────
+
+    private function paramsML(Request $request): array
     {
-        $params = [
-            'category' => self::ML_CATEGORY,
-            'limit'    => 12,
-            'offset'   => 0,
-        ];
-
-        // Texto de busqueda
-        if ($request->filled('busqueda')) {
-            $params['q'] = $request->busqueda;
-        }
-
-        // Rango de precio
+        $p = ['category' => 'MLM1459', 'limit' => 9];
+        $p['q'] = $request->input('busqueda', 'casa');
         $min = $request->input('precio_min');
         $max = $request->input('precio_max');
-        if ($min || $max) {
-            $params['price'] = ($min ?: '*') . '-' . ($max ?: '*');
-        }
-
-        // Habitaciones — ML usa atributo BEDROOMS
-        if ($request->filled('habitaciones')) {
-            $params['BEDROOMS'] = $request->habitaciones . '-*';
-        }
-
-        // Tipo de operacion: 1=Venta, 2=Renta — aproximado
-        if ($request->filled('tipo_operacion_id')) {
-            // ML: OPERATION = sale | rent
-            $params['OPERATION'] = $request->tipo_operacion_id == 1 ? 'sale' : 'rent';
-        }
-
-        // Ubicacion: si hay colonia o busqueda en Mexico incluir CDMX por defecto
-        if (!$request->filled('busqueda')) {
-            $params['q'] = 'casa';
-        }
-
-        return $params;
+        if ($min || $max) $p['price'] = ($min ?: '*') . '-' . ($max ?: '*');
+        if ($request->filled('habitaciones')) $p['BEDROOMS'] = $request->habitaciones . '-*';
+        if ($request->filled('tipo_operacion_id')) $p['OPERATION'] = $request->tipo_operacion_id == 1 ? 'sale' : 'rent';
+        return $p;
     }
 
-    private function sanitizeItem(array $item): array
+    private function parseMercadoLibre($response): ?array
     {
-        $thumbnail = $item['thumbnail'] ?? null;
-        // ML devuelve http:// — forzar https://
-        if ($thumbnail) {
-            $thumbnail = str_replace('http://', 'https://', $thumbnail);
-            // Pedir imagen de mayor resolucion
-            $thumbnail = str_replace('-I.jpg', '-O.jpg', $thumbnail);
+        try {
+            if (!$response || !$response->successful()) return null;
+            $data  = $response->json();
+            $items = array_slice($data['results'] ?? [], 0, 9);
+            if (empty($items)) return null;
+
+            return [
+                'fuente'     => 'mercadolibre',
+                'nombre'     => 'Mercado Libre',
+                'color'      => '#ffe600',
+                'text_color' => '#333333',
+                'logo'       => 'https://http2.mlstatic.com/frontend-assets/ml-web-navigation/ui-navigation/5.19.5/mercadolibre/logo__small.png',
+                'total'      => $data['paging']['total'] ?? count($items),
+                'resultados' => array_map(function ($item) {
+                    $attrs = collect($item['attributes'] ?? []);
+                    $img   = $item['thumbnail'] ?? null;
+                    if ($img) $img = str_replace(['http://', '-I.jpg'], ['https://', '-O.jpg'], $img);
+                    return [
+                        'titulo'       => $item['title'] ?? 'Propiedad',
+                        'precio'       => $item['price'] ?? 0,
+                        'moneda'       => $item['currency_id'] ?? 'MXN',
+                        'imagen'       => $img,
+                        'url'          => $item['permalink'] ?? '#',
+                        'ubicacion'    => trim(($item['location']['city']['name'] ?? '') . ', ' . ($item['location']['state']['name'] ?? 'Mexico'), ', '),
+                        'habitaciones' => $attrs->firstWhere('id', 'BEDROOMS')['value_name'] ?? null,
+                        'banios'       => $attrs->firstWhere('id', 'FULL_BATHROOMS')['value_name'] ?? null,
+                        'metros'       => $attrs->firstWhere('id', 'COVERED_AREA')['value_name'] ?? null,
+                        'tipo'         => $attrs->firstWhere('id', 'PROPERTY_TYPE')['value_name'] ?? 'Inmueble',
+                    ];
+                }, $items),
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('ML parse error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // ── LAMUDI ─────────────────────────────────────────────────────
+
+    private function paramsLamudi(Request $request): array
+    {
+        $p = ['page[size]' => 9, 'search[location_name]' => 'Mexico'];
+        $p['search[q]'] = $request->input('busqueda', 'casa');
+        if ($request->filled('precio_min')) $p['filters[price][min]'] = $request->precio_min;
+        if ($request->filled('precio_max')) $p['filters[price][max]'] = $request->precio_max;
+        if ($request->filled('habitaciones')) $p['filters[bedrooms][min]'] = $request->habitaciones;
+        return $p;
+    }
+
+    private function parseLamudi($response): ?array
+    {
+        try {
+            if (!$response || !$response->successful()) return null;
+            $data  = $response->json();
+            $items = $data['results'] ?? ($data['data'] ?? []);
+            if (empty($items)) return null;
+
+            return [
+                'fuente'     => 'lamudi',
+                'nombre'     => 'Lamudi',
+                'color'      => '#e31837',
+                'text_color' => '#ffffff',
+                'logo'       => null,
+                'total'      => $data['meta']['total'] ?? count($items),
+                'resultados' => array_map(fn($item) => [
+                    'titulo'       => $item['title'] ?? ($item['headline'] ?? 'Propiedad'),
+                    'precio'       => $item['price'] ?? ($item['attributes']['price'] ?? 0),
+                    'moneda'       => 'MXN',
+                    'imagen'       => $item['image']['url'] ?? ($item['thumbnail'] ?? null),
+                    'url'          => 'https://www.lamudi.com.mx' . ($item['url'] ?? ''),
+                    'ubicacion'    => $item['location']['name'] ?? ($item['address'] ?? 'Mexico'),
+                    'habitaciones' => $item['attributes']['bedrooms'] ?? null,
+                    'banios'       => $item['attributes']['bathrooms'] ?? null,
+                    'metros'       => $item['attributes']['floor_size'] ?? null,
+                    'tipo'         => $item['property_type'] ?? 'Inmueble',
+                ], array_slice($items, 0, 9)),
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('Lamudi parse error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // ── VIVANUNCIOS ────────────────────────────────────────────────
+
+    private function paramsVivanuncios(Request $request): array
+    {
+        $p = ['limit' => 9, 'category_ids' => '8000'];
+        $p['q'] = $request->input('busqueda', 'casa');
+        if ($request->filled('precio_min')) $p['price_min'] = $request->precio_min;
+        if ($request->filled('precio_max')) $p['price_max'] = $request->precio_max;
+        if ($request->filled('habitaciones')) $p['rooms_min'] = $request->habitaciones;
+        return $p;
+    }
+
+    private function parseVivanuncios($response): ?array
+    {
+        try {
+            if (!$response || !$response->successful()) return null;
+            $data  = $response->json();
+            $items = $data['items'] ?? ($data['results'] ?? ($data['data'] ?? []));
+            if (empty($items)) return null;
+
+            return [
+                'fuente'     => 'vivanuncios',
+                'nombre'     => 'Vivanuncios',
+                'color'      => '#7c3aed',
+                'text_color' => '#ffffff',
+                'logo'       => null,
+                'total'      => $data['total'] ?? count($items),
+                'resultados' => array_map(fn($item) => [
+                    'titulo'       => $item['title'] ?? ($item['subject'] ?? 'Propiedad'),
+                    'precio'       => $item['price']['value'] ?? ($item['price'] ?? 0),
+                    'moneda'       => $item['price']['currency'] ?? 'MXN',
+                    'imagen'       => $item['images'][0]['url'] ?? ($item['thumbnail'] ?? null),
+                    'url'          => $item['url'] ?? ($item['link'] ?? '#'),
+                    'ubicacion'    => $item['location']['name'] ?? ($item['city'] ?? 'Mexico'),
+                    'habitaciones' => $item['params']['rooms'] ?? null,
+                    'banios'       => $item['params']['bathrooms'] ?? null,
+                    'metros'       => $item['params']['m2'] ?? null,
+                    'tipo'         => $item['category']['name'] ?? 'Inmueble',
+                ], array_slice($items, 0, 9)),
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('Vivanuncios parse error: ' . $e->getMessage());
+            return null;
+        }
+    }
+
+    // ── GOOGLE CUSTOM SEARCH ──────────────────────────────────────
+
+    private function paramsGoogle(Request $request): array
+    {
+        $key = config('services.google_cse.key');
+        $cx  = config('services.google_cse.id');
+
+        if (!$key || !$cx) return ['_skip' => true];
+
+        $query = $request->input('busqueda', 'casas en venta Mexico');
+        if ($request->filled('precio_min') || $request->filled('precio_max')) {
+            $query .= ' precio';
         }
 
-        $attrs = collect($item['attributes'] ?? []);
-        $bedrooms   = $attrs->firstWhere('id', 'BEDROOMS')['value_name'] ?? null;
-        $bathrooms  = $attrs->firstWhere('id', 'FULL_BATHROOMS')['value_name'] ?? null;
-        $area        = $attrs->firstWhere('id', 'COVERED_AREA')['value_name'] ?? null;
-        $propertyType = $attrs->firstWhere('id', 'PROPERTY_TYPE')['value_name'] ?? null;
-
         return [
-            'id'            => $item['id'] ?? null,
-            'titulo'        => $item['title'] ?? 'Propiedad',
-            'precio'        => $item['price'] ?? 0,
-            'moneda'        => $item['currency_id'] ?? 'MXN',
-            'imagen'        => $thumbnail,
-            'url'           => $item['permalink'] ?? '#',
-            'ubicacion'     => ($item['location']['city']['name'] ?? '') . ', ' . ($item['location']['state']['name'] ?? 'Mexico'),
-            'habitaciones'  => $bedrooms,
-            'banios'        => $bathrooms,
-            'metros'        => $area,
-            'tipo'          => $propertyType ?? 'Inmueble',
-            'condicion'     => $item['condition'] ?? null,
+            'key'  => $key,
+            'cx'   => $cx,
+            'q'    => $query . ' inmuebles',
+            'num'  => 9,
+            'gl'   => 'mx',
+            'lr'   => 'lang_es',
         ];
+    }
+
+    private function parseGoogle($response): ?array
+    {
+        // No configurado o no se solicito
+        if (!$response || isset($this->paramsGoogle(request())['_skip'])) return null;
+
+        try {
+            if (!$response->successful()) return null;
+            $data  = $response->json();
+            $items = $data['items'] ?? [];
+            if (empty($items)) return null;
+
+            return [
+                'fuente'     => 'google',
+                'nombre'     => 'Web (Google)',
+                'color'      => '#4285f4',
+                'text_color' => '#ffffff',
+                'logo'       => null,
+                'total'      => (int) ($data['searchInformation']['totalResults'] ?? count($items)),
+                'resultados' => array_map(function ($item) {
+                    $pagemap = $item['pagemap'] ?? [];
+                    $og      = $pagemap['og_title'][0] ?? [];
+                    $meta    = $pagemap['metatags'][0] ?? [];
+                    $img     = $pagemap['cse_image'][0]['src'] ?? ($pagemap['og:image'][0] ?? null);
+                    $precio  = null;
+                    if (preg_match('/\$[\d,]+/', $item['snippet'] ?? '', $m)) {
+                        $precio = (int) str_replace([',', '$'], '', $m[0]);
+                    }
+                    return [
+                        'titulo'       => $item['title'] ?? 'Propiedad',
+                        'precio'       => $precio,
+                        'moneda'       => 'MXN',
+                        'imagen'       => $img,
+                        'url'          => $item['link'] ?? '#',
+                        'ubicacion'    => $meta['og:site_name'] ?? parse_url($item['link'] ?? '', PHP_URL_HOST) ?: 'Mexico',
+                        'habitaciones' => null,
+                        'banios'       => null,
+                        'metros'       => null,
+                        'tipo'         => $item['displayLink'] ?? 'Inmueble',
+                        'snippet'      => $item['snippet'] ?? null,
+                    ];
+                }, $items),
+            ];
+        } catch (\Throwable $e) {
+            Log::warning('Google CSE parse error: ' . $e->getMessage());
+            return null;
+        }
     }
 }

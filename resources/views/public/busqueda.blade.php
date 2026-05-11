@@ -167,27 +167,33 @@
                     </div>
                 @endif
 
-                {{-- Resultados externos --}}
-                <div id="externalResults" class="mt-5" style="display:none">
+                {{-- Resultados externos (multi-fuente) --}}
+                <div id="externalLoading" class="text-center py-5 mt-4" style="display:none">
+                    <div class="d-flex justify-content-center gap-3 mb-3">
+                        <div class="spinner-grow spinner-grow-sm text-warning" role="status"></div>
+                        <div class="spinner-grow spinner-grow-sm text-danger" style="animation-delay:.15s" role="status"></div>
+                        <div class="spinner-grow spinner-grow-sm text-primary" style="animation-delay:.3s" role="status"></div>
+                    </div>
+                    <p class="text-muted mb-0">Buscando en portales externos...</p>
+                </div>
+
+                <div id="externalSection" class="mt-5" style="display:none">
                     <hr class="my-4">
-                    <div class="d-flex align-items-center justify-content-between mb-3 flex-wrap gap-2">
-                        <h5 class="mb-0 fw-bold">
-                            <span class="badge me-2" style="background:#ffe600;color:#333;font-size:.8rem">MERCADO LIBRE</span>
-                            Propiedades en internet
-                        </h5>
-                        <small class="text-muted" id="externalCount"></small>
+                    <div class="d-flex align-items-center gap-2 mb-3 flex-wrap">
+                        <i class="fas fa-globe text-primary"></i>
+                        <h5 class="mb-0 fw-bold">Propiedades en internet</h5>
+                        <span class="text-muted small">(resultados de portales externos)</span>
                     </div>
-                    <div id="externalGrid" class="row g-4"></div>
-                    <p class="text-muted small mt-3"><i class="fas fa-info-circle me-1"></i>Resultados obtenidos de Mercado Libre Mexico. InmoTech no es responsable de los listados externos.</p>
-                </div>
-                <div id="externalLoading" class="text-center py-4 mt-4" style="display:none">
-                    <div class="spinner-border text-warning" role="status"></div>
-                    <p class="text-muted mt-2 mb-0 small">Buscando en internet...</p>
-                </div>
-                <div id="externalError" class="mt-4" style="display:none">
-                    <div class="alert alert-warning">
-                        <i class="fas fa-exclamation-triangle me-2"></i>No se pudieron cargar resultados externos en este momento.
-                    </div>
+
+                    {{-- Tabs de fuentes --}}
+                    <ul class="nav nav-tabs" id="externalTabs" role="tablist"></ul>
+
+                    <div class="tab-content pt-4" id="externalTabContent"></div>
+
+                    <p class="text-muted small mt-3">
+                        <i class="fas fa-info-circle me-1"></i>
+                        InmoTech no es responsable del contenido de portales externos. Los precios y disponibilidad pueden variar.
+                    </p>
                 </div>
             </div>
         </div>
@@ -322,69 +328,98 @@ function formatPrice(p) {
     return p;
 }
 
-// BUSQUEDA EXTERNA
+// BUSQUEDA EXTERNA MULTI-FUENTE
 (async function loadExternalResults() {
     const gridEl  = document.getElementById('gridView');
     const baseUrl = gridEl.dataset.externalUrl;
     const params  = JSON.parse(gridEl.dataset.params || '{}');
 
-    // Solo buscar si hay algun filtro activo o busqueda
     if (!Object.values(params).some(v => v)) return;
 
     document.getElementById('externalLoading').style.display = 'block';
 
     try {
-        const qs = new URLSearchParams(params).toString();
+        const qs  = new URLSearchParams(params).toString();
         const res = await fetch(baseUrl + '?' + qs);
         if (!res.ok) throw new Error('HTTP ' + res.status);
-
         const data = await res.json();
 
         document.getElementById('externalLoading').style.display = 'none';
 
-        if (data.error || !data.resultados || data.resultados.length === 0) return;
+        const fuentes = data.fuentes || [];
+        if (!fuentes.length) return;
 
-        document.getElementById('externalCount').textContent = data.total.toLocaleString() + ' resultados encontrados';
-        document.getElementById('externalResults').style.display = 'block';
+        document.getElementById('externalSection').style.display = 'block';
+        const tabList    = document.getElementById('externalTabs');
+        const tabContent = document.getElementById('externalTabContent');
 
-        const grid = document.getElementById('externalGrid');
-        data.resultados.forEach(p => {
-            const precio = p.moneda === 'USD'
-                ? 'USD ' + p.precio.toLocaleString('en-US')
-                : '$' + p.precio.toLocaleString('es-MX');
+        fuentes.forEach((fuente, idx) => {
+            const id      = 'tab-' + fuente.fuente;
+            const isFirst = idx === 0;
+            const badge   = `<span class="badge ms-1" style="background:${fuente.color};color:${fuente.text_color};font-size:.65rem">${fuente.nombre.toUpperCase()}</span>`;
+            const total   = fuente.total ? fuente.total.toLocaleString() : '';
 
-            const card = document.createElement('div');
-            card.className = 'col-md-6 col-lg-4';
-            card.innerHTML = `
-                <div class="property-card h-100 position-relative">
-                    <span class="position-absolute top-0 end-0 m-2 badge" style="background:#ffe600;color:#333;z-index:2;font-size:.65rem">MERCADO LIBRE</span>
-                    <div class="property-image-wrapper overflow-hidden rounded-top" style="height:180px">
-                        <img src="${p.imagen || 'https://picsum.photos/400/200?grayscale'}"
-                             class="w-100 h-100" style="object-fit:cover"
-                             onerror="this.src='https://picsum.photos/400/200?grayscale'">
-                    </div>
-                    <div class="p-3">
-                        <p class="property-tipo mb-1">${p.tipo}</p>
-                        <h6 class="property-title mb-1" style="font-size:.9rem;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${p.titulo}</h6>
-                        <p class="text-muted small mb-2"><i class="fas fa-map-marker-alt me-1"></i>${p.ubicacion}</p>
-                        <div class="d-flex gap-3 text-muted mb-2" style="font-size:.78rem">
-                            ${p.habitaciones ? `<span><i class="fas fa-bed me-1"></i>${p.habitaciones}</span>` : ''}
-                            ${p.banios ? `<span><i class="fas fa-bath me-1"></i>${p.banios}</span>` : ''}
-                            ${p.metros ? `<span><i class="fas fa-ruler me-1"></i>${p.metros}</span>` : ''}
+            // Tab button
+            const li = document.createElement('li');
+            li.className = 'nav-item';
+            li.innerHTML = `
+                <button class="nav-link ${isFirst ? 'active' : ''}" data-bs-toggle="tab" data-bs-target="#${id}" type="button">
+                    ${badge} <small class="text-muted ms-1">${total}</small>
+                </button>`;
+            tabList.appendChild(li);
+
+            // Tab pane
+            const pane = document.createElement('div');
+            pane.className = `tab-pane fade ${isFirst ? 'show active' : ''}`;
+            pane.id = id;
+
+            const row = document.createElement('div');
+            row.className = 'row g-4';
+
+            fuente.resultados.forEach(p => {
+                const precio = p.precio
+                    ? (p.moneda === 'USD' ? 'USD ' + p.precio.toLocaleString('en-US') : '$' + p.precio.toLocaleString('es-MX'))
+                    : null;
+
+                const card = document.createElement('div');
+                card.className = 'col-md-6 col-lg-4';
+                card.innerHTML = `
+                    <div class="property-card h-100 position-relative">
+                        <span class="position-absolute top-0 end-0 m-2 badge z-1" style="background:${fuente.color};color:${fuente.text_color};font-size:.65rem">${fuente.nombre.toUpperCase()}</span>
+                        <div class="overflow-hidden rounded-top" style="height:175px">
+                            <img src="${p.imagen || 'https://placehold.co/400x175/e5e7eb/9ca3af?text=Sin+foto'}"
+                                 class="w-100 h-100" style="object-fit:cover"
+                                 onerror="this.src='https://placehold.co/400x175/e5e7eb/9ca3af?text=Sin+foto'">
                         </div>
-                        <div class="d-flex justify-content-between align-items-center mt-auto">
-                            <span class="price-tag" style="font-size:1rem">${precio}</span>
-                            <a href="${p.url}" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-outline-warning">
-                                Ver <i class="fas fa-external-link-alt ms-1" style="font-size:.7rem"></i>
-                            </a>
+                        <div class="p-3">
+                            <p class="property-tipo mb-1">${p.tipo}</p>
+                            <h6 class="property-title mb-1" style="font-size:.88rem;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${p.titulo}</h6>
+                            <p class="text-muted small mb-2"><i class="fas fa-map-marker-alt me-1"></i>${p.ubicacion || 'Mexico'}</p>
+                            ${p.snippet ? `<p class="text-muted mb-2" style="font-size:.78rem;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical">${p.snippet}</p>` : ''}
+                            <div class="d-flex gap-3 text-muted mb-2" style="font-size:.78rem">
+                                ${p.habitaciones ? `<span><i class="fas fa-bed me-1"></i>${p.habitaciones}</span>` : ''}
+                                ${p.banios ? `<span><i class="fas fa-bath me-1"></i>${p.banios}</span>` : ''}
+                                ${p.metros ? `<span><i class="fas fa-ruler-combined me-1"></i>${p.metros}</span>` : ''}
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center mt-auto pt-1 border-top">
+                                <span class="price-tag" style="font-size:.95rem">${precio || '<span class="text-muted small">Precio no disponible</span>'}</span>
+                                <a href="${p.url}" target="_blank" rel="noopener noreferrer"
+                                   class="btn btn-sm" style="background:${fuente.color};color:${fuente.text_color};border:none">
+                                    Ver <i class="fas fa-external-link-alt ms-1" style="font-size:.65rem"></i>
+                                </a>
+                            </div>
                         </div>
-                    </div>
-                </div>`;
-            grid.appendChild(card);
+                    </div>`;
+                row.appendChild(card);
+            });
+
+            pane.appendChild(row);
+            tabContent.appendChild(pane);
         });
+
     } catch (e) {
         document.getElementById('externalLoading').style.display = 'none';
-        document.getElementById('externalError').style.display = 'block';
+        console.warn('External search error:', e);
     }
 })();
 </script>
