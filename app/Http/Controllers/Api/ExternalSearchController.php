@@ -13,21 +13,22 @@ class ExternalSearchController extends Controller
     public function search(Request $request): JsonResponse
     {
         $fuentes = [];
+        $sslVerify = !app()->environment('local') || env('CURL_VERIFY_SSL', true);
 
         // Ejecutar todas las busquedas en paralelo
         try {
             $responses = Http::pool(fn($pool) => [
-                $pool->as('mercadolibre')->timeout(8)->get(
+                $pool->as('mercadolibre')->timeout(8)->withOptions(['verify' => $sslVerify])->get(
                     'https://api.mercadolibre.com/sites/MLM/search',
                     $this->paramsML($request)
                 ),
-                $pool->as('lamudi')->timeout(8)
+                $pool->as('lamudi')->timeout(8)->withOptions(['verify' => $sslVerify])
                     ->withHeaders(['Accept' => 'application/json', 'X-Requested-With' => 'XMLHttpRequest'])
                     ->get('https://www.lamudi.com.mx/api/1.0.0/listings/', $this->paramsLamudi($request)),
-                $pool->as('vivanuncios')->timeout(8)
+                $pool->as('vivanuncios')->timeout(8)->withOptions(['verify' => $sslVerify])
                     ->withHeaders(['Accept' => 'application/json'])
                     ->get('https://api.vivanuncios.com.mx/v2/private/items', $this->paramsVivanuncios($request)),
-                $pool->as('google')->timeout(8)->get(
+                $pool->as('google')->timeout(8)->withOptions(['verify' => $sslVerify])->get(
                     'https://www.googleapis.com/customsearch/v1',
                     $this->paramsGoogle($request)
                 ),
@@ -65,7 +66,7 @@ class ExternalSearchController extends Controller
     private function parseMercadoLibre($response): ?array
     {
         try {
-            if (!$response || !$response->successful()) return null;
+            if (!$response || $response instanceof \Throwable || !$response->successful()) return null;
             $data  = $response->json();
             $items = array_slice($data['results'] ?? [], 0, 9);
             if (empty($items)) return null;
@@ -116,7 +117,7 @@ class ExternalSearchController extends Controller
     private function parseLamudi($response): ?array
     {
         try {
-            if (!$response || !$response->successful()) return null;
+            if (!$response || $response instanceof \Throwable || !$response->successful()) return null;
             $data  = $response->json();
             $items = $data['results'] ?? ($data['data'] ?? []);
             if (empty($items)) return null;
@@ -162,7 +163,7 @@ class ExternalSearchController extends Controller
     private function parseVivanuncios($response): ?array
     {
         try {
-            if (!$response || !$response->successful()) return null;
+            if (!$response || $response instanceof \Throwable || !$response->successful()) return null;
             $data  = $response->json();
             $items = $data['items'] ?? ($data['results'] ?? ($data['data'] ?? []));
             if (empty($items)) return null;
@@ -220,7 +221,7 @@ class ExternalSearchController extends Controller
     private function parseGoogle($response): ?array
     {
         // No configurado o no se solicito
-        if (!$response || isset($this->paramsGoogle(request())['_skip'])) return null;
+        if (!$response || $response instanceof \Throwable || isset($this->paramsGoogle(request())['_skip'])) return null;
 
         try {
             if (!$response->successful()) return null;
