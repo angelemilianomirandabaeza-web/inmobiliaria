@@ -152,9 +152,7 @@ class PropiedadController extends Controller
 
         $propiedad->update($data);
 
-        if ($request->has('amenidades')) {
-            $propiedad->amenidades()->sync($request->amenidades);
-        }
+        $propiedad->amenidades()->sync($request->input('amenidades', []));
 
         return redirect()->route('agente.propiedades.index')->with('success', 'Propiedad actualizada.');
     }

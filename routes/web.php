@@ -2,7 +2,10 @@
 
 use App\Http\Controllers\Admin\AdminAgenteController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\ContratoController;
+use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\Api\AutocompleteController;
+use App\Http\Controllers\Api\ExternalSearchController;
 use App\Http\Controllers\Api\QuickViewController;
 use App\Http\Controllers\Admin\PropiedadAprobacionController;
 use App\Http\Controllers\Agente\AgenteDashboardController;
@@ -28,11 +31,12 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/propiedades', [BusquedaController::class, 'index'])->name('propiedades.buscar');
 Route::get('/propiedades/{propiedad}', [PropiedadPublicaController::class, 'show'])->name('propiedades.show');
 Route::get('/comparar', [ComparadorController::class, 'index'])->name('comparar');
-Route::post('/contacto/{propiedad}', [ContactoController::class, 'store'])->name('contacto.store');
+Route::post('/contacto/{propiedad}', [ContactoController::class, 'store'])->middleware('throttle:5,1')->name('contacto.store');
 Route::get('/busqueda-exterior', [BusquedaExteriorController::class, 'index'])->name('busqueda.exterior');
-Route::get('/api/autocomplete', [AutocompleteController::class, 'search'])->name('api.autocomplete');
-Route::get('/api/quick-view/{propiedad}', [QuickViewController::class, 'show'])->name('api.quick-view');
-Route::get('/api/mapa-propiedades', [QuickViewController::class, 'mapData'])->name('api.mapa-propiedades');
+Route::get('/api/autocomplete', [AutocompleteController::class, 'search'])->middleware('throttle:60,1')->name('api.autocomplete');
+Route::get('/api/quick-view/{propiedad}', [QuickViewController::class, 'show'])->middleware('throttle:60,1')->name('api.quick-view');
+Route::get('/api/mapa-propiedades', [QuickViewController::class, 'mapData'])->middleware('throttle:30,1')->name('api.mapa-propiedades');
+Route::get('/api/busqueda-externa', [ExternalSearchController::class, 'search'])->middleware('throttle:20,1')->name('api.busqueda-externa');
 
 // SEO
 Route::get('/sitemap.xml', [SitemapController::class, 'index']);
@@ -106,4 +110,12 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Gestión de agentes
     Route::resource('agentes', AdminAgenteController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
     Route::patch('/agentes/{agente}/toggle-activo', [AdminAgenteController::class, 'toggleActivo'])->name('agentes.toggle-activo');
+
+    // Contratos
+    Route::resource('contratos', ContratoController::class)->only(['index', 'create', 'store', 'show', 'destroy']);
+
+    // Gestión de usuarios
+    Route::resource('usuarios', UserController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy'])
+         ->parameters(['usuarios' => 'usuario']);
+    Route::patch('/usuarios/{usuario}/toggle', [UserController::class, 'toggleActivo'])->name('usuarios.toggle');
 });

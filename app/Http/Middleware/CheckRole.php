@@ -15,7 +15,7 @@ class CheckRole
         }
 
         $user = $request->user();
-        $user->load('rol');
+        $user->loadMissing('rol');
 
         if (!$user->rol || !in_array($user->rol->nombre, $roles)) {
             abort(403, 'No tienes permiso para acceder a esta seccion.');

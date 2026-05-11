@@ -38,38 +38,38 @@ class AutocompleteController extends Controller
             ];
         }
 
-        // Colonias
+        // Colonias — withCount evita N+1 queries
         $colonias = Colonia::where('nombre', 'like', "%{$q}%")
             ->with('municipio')
+            ->withCount(['propiedades' => fn($q) => $q->where('aprobada', true)])
             ->limit(4)
             ->get();
 
         foreach ($colonias as $c) {
-            $count = Propiedad::aprobadas()->where('colonia_id', $c->id)->count();
             $results[] = [
                 'type'      => 'colonia',
                 'icon'      => 'fa-map-marker-alt',
                 'title'     => $c->nombre,
                 'subtitle'  => $c->municipio->nombre,
-                'price'     => $count . ' props',
+                'price'     => $c->propiedades_count . ' props',
                 'image'     => null,
                 'url'       => route('propiedades.buscar', ['colonia_id' => $c->id]),
             ];
         }
 
-        // Municipios
+        // Municipios — withCount evita N+1 queries
         $municipios = \App\Models\Municipio::where('nombre', 'like', "%{$q}%")
+            ->withCount(['propiedades as propiedades_count' => fn($q) => $q->where('aprobada', true)])
             ->limit(3)
             ->get();
 
         foreach ($municipios as $m) {
-            $count = Propiedad::aprobadas()->whereHas('colonia', fn($q) => $q->where('municipio_id', $m->id))->count();
             $results[] = [
                 'type'      => 'municipio',
                 'icon'      => 'fa-city',
                 'title'     => $m->nombre,
                 'subtitle'  => 'Municipio',
-                'price'     => $count . ' props',
+                'price'     => $m->propiedades_count . ' props',
                 'image'     => null,
                 'url'       => route('propiedades.buscar', ['busqueda' => $m->nombre]),
             ];

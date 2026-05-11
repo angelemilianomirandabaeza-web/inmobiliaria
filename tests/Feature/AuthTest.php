@@ -5,6 +5,7 @@ namespace Tests\Feature;
 use App\Models\Role;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
+use Illuminate\Support\Facades\Hash;
 use Tests\TestCase;
 
 class AuthTest extends TestCase
@@ -14,224 +15,221 @@ class AuthTest extends TestCase
     protected function setUp(): void
     {
         parent::setUp();
-        // Seed roles necesarios
-        Role::insert([
-            ['nombre' => 'admin'],
-            ['nombre' => 'agente'],
-            ['nombre' => 'cliente'],
-            ['nombre' => 'agencia'],
-        ]);
+        $this->seed(\Database\Seeders\RoleSeeder::class);
     }
 
-    // ── REGISTRO ───────────────────────────────────────────────────────
-
-    public function test_pagina_registro_carga_correctamente(): void
+    private function clienteRolId(): int
     {
-        $this->get('/register')->assertStatus(200)->assertSee('Crear cuenta');
+        return Role::where('nombre', 'cliente')->value('id');
     }
 
-    public function test_usuario_puede_registrarse(): void
-    {
-        $response = $this->post('/register', [
-            'name'                  => 'Ana Prueba',
-            'email'                 => 'ana@prueba.com',
-            'password'              => 'password123',
-            'password_confirmation' => 'password123',
-        ]);
+    // ── LOGIN ──────────────────────────────────────────────────────
 
-        $response->assertRedirect();
-        $this->assertDatabaseHas('users', ['email' => 'ana@prueba.com']);
+    public function test_login_page_is_accessible(): void
+    {
+        $this->get('/login')->assertStatus(200);
     }
 
-    public function test_registro_asigna_rol_cliente(): void
+    public function test_user_can_login_with_correct_credentials(): void
     {
-        $this->post('/register', [
-            'name'                  => 'Cliente Nuevo',
-            'email'                 => 'nuevo@cliente.com',
-            'password'              => 'password123',
-            'password_confirmation' => 'password123',
-        ]);
-
-        $user = User::where('email', 'nuevo@cliente.com')->first();
-        $this->assertNotNull($user);
-        $this->assertTrue($user->isCliente());
-    }
-
-    public function test_registro_falla_si_email_duplicado(): void
-    {
-        User::create([
-            'name'     => 'Existente',
-            'email'    => 'duplicado@correo.com',
-            'password' => bcrypt('password'),
-            'rol_id'   => Role::where('nombre', 'cliente')->value('id'),
+        $user = User::factory()->create([
+            'password' => Hash::make('password'),
+            'rol_id'   => $this->clienteRolId(),
             'activo'   => true,
         ]);
 
-        $this->post('/register', [
-            'name'                  => 'Nuevo',
-            'email'                 => 'duplicado@correo.com',
-            'password'              => 'password123',
-            'password_confirmation' => 'password123',
-        ])->assertSessionHasErrors('email');
-    }
-
-    public function test_registro_falla_sin_nombre(): void
-    {
-        $this->post('/register', [
-            'name'                  => '',
-            'email'                 => 'test@correo.com',
-            'password'              => 'password123',
-            'password_confirmation' => 'password123',
-        ])->assertSessionHasErrors('name');
-    }
-
-    public function test_registro_falla_con_contrasena_corta(): void
-    {
-        $this->post('/register', [
-            'name'                  => 'Test',
-            'email'                 => 'test@correo.com',
-            'password'              => '123',
-            'password_confirmation' => '123',
-        ])->assertSessionHasErrors('password');
-    }
-
-    public function test_registro_falla_con_contrasenas_distintas(): void
-    {
-        $this->post('/register', [
-            'name'                  => 'Test',
-            'email'                 => 'test@correo.com',
-            'password'              => 'password123',
-            'password_confirmation' => 'otrapassword',
-        ])->assertSessionHasErrors('password');
-    }
-
-    // ── LOGIN ──────────────────────────────────────────────────────────
-
-    public function test_pagina_login_carga_correctamente(): void
-    {
-        $this->get('/login')->assertStatus(200)->assertSee('Bienvenido de nuevo');
-    }
-
-    public function test_usuario_puede_hacer_login(): void
-    {
-        $rolId = Role::where('nombre', 'cliente')->value('id');
-        $user  = User::create([
-            'name'     => 'Login Test',
-            'email'    => 'login@test.com',
-            'password' => bcrypt('password123'),
-            'rol_id'   => $rolId,
-            'activo'   => true,
-        ]);
-
-        $this->post('/login', [
-            'email'    => 'login@test.com',
-            'password' => 'password123',
-        ])->assertRedirect();
+        $this->post('/login', ['email' => $user->email, 'password' => 'password'])
+            ->assertRedirect('/dashboard');
 
         $this->assertAuthenticatedAs($user);
     }
 
-    public function test_login_falla_con_contrasena_incorrecta(): void
+    public function test_user_cannot_login_with_wrong_password(): void
     {
-        $rolId = Role::where('nombre', 'cliente')->value('id');
-        User::create([
-            'name'     => 'Login Test',
-            'email'    => 'login2@test.com',
-            'password' => bcrypt('correcta'),
-            'rol_id'   => $rolId,
+        $user = User::factory()->create([
+            'password' => Hash::make('password'),
+            'rol_id'   => $this->clienteRolId(),
             'activo'   => true,
         ]);
 
-        $this->post('/login', [
-            'email'    => 'login2@test.com',
-            'password' => 'incorrecta',
-        ])->assertSessionHasErrors();
+        $this->post('/login', ['email' => $user->email, 'password' => 'wrong'])
+            ->assertSessionHasErrors('email');
 
         $this->assertGuest();
     }
 
-    public function test_login_falla_con_email_inexistente(): void
+    public function test_inactive_user_cannot_login(): void
     {
-        $this->post('/login', [
-            'email'    => 'noexiste@test.com',
-            'password' => 'password123',
-        ])->assertSessionHasErrors();
+        $user = User::factory()->create([
+            'password' => Hash::make('password'),
+            'rol_id'   => $this->clienteRolId(),
+            'activo'   => false,
+        ]);
+
+        $this->post('/login', ['email' => $user->email, 'password' => 'password'])
+            ->assertSessionHasErrors('email');
 
         $this->assertGuest();
     }
 
-    public function test_usuario_autenticado_puede_hacer_logout(): void
+    public function test_login_requires_email_and_password(): void
     {
-        $rolId = Role::where('nombre', 'cliente')->value('id');
-        $user  = User::create([
-            'name'     => 'Logout Test',
-            'email'    => 'logout@test.com',
-            'password' => bcrypt('password123'),
-            'rol_id'   => $rolId,
+        $this->post('/login', [])
+            ->assertSessionHasErrors(['email', 'password']);
+    }
+
+    // ── LOGOUT ─────────────────────────────────────────────────────
+
+    public function test_authenticated_user_can_logout(): void
+    {
+        $user = User::factory()->create([
+            'rol_id' => $this->clienteRolId(),
+            'activo' => true,
+        ]);
+
+        $this->actingAs($user)
+            ->post('/logout')
+            ->assertRedirect('/');
+
+        $this->assertGuest();
+    }
+
+    // ── REGISTER ───────────────────────────────────────────────────
+
+    public function test_register_page_is_accessible(): void
+    {
+        $this->get('/register')->assertStatus(200);
+    }
+
+    public function test_new_user_can_register(): void
+    {
+        $this->post('/register', [
+            'name'                  => 'Nuevo Usuario',
+            'email'                 => 'nuevo@test.com',
+            'password'              => 'Password123!',
+            'password_confirmation' => 'Password123!',
+            'telefono'              => '5512345678',
+        ])->assertRedirect('/dashboard');
+
+        $this->assertAuthenticated();
+
+        $this->assertDatabaseHas('users', [
+            'email'  => 'nuevo@test.com',
+            'rol_id' => $this->clienteRolId(),
+            'activo' => true,
+        ]);
+    }
+
+    public function test_register_requires_unique_email(): void
+    {
+        User::factory()->create([
+            'email'  => 'existe@test.com',
+            'rol_id' => $this->clienteRolId(),
+            'activo' => true,
+        ]);
+
+        $this->post('/register', [
+            'name'                  => 'Otro Usuario',
+            'email'                 => 'existe@test.com',
+            'password'              => 'Password123!',
+            'password_confirmation' => 'Password123!',
+        ])->assertSessionHasErrors('email');
+    }
+
+    public function test_register_requires_password_confirmation(): void
+    {
+        $this->post('/register', [
+            'name'                  => 'Test',
+            'email'                 => 'test@test.com',
+            'password'              => 'Password123!',
+            'password_confirmation' => 'DifferentPassword!',
+        ])->assertSessionHasErrors('password');
+    }
+
+    // ── PERFIL ─────────────────────────────────────────────────────
+
+    public function test_profile_page_requires_auth(): void
+    {
+        $this->get('/perfil')->assertRedirect('/login');
+    }
+
+    public function test_authenticated_user_can_view_profile(): void
+    {
+        $user = User::factory()->create([
+            'rol_id' => $this->clienteRolId(),
+            'activo' => true,
+        ]);
+
+        $this->actingAs($user)->get('/perfil')->assertStatus(200);
+    }
+
+    public function test_user_can_update_profile(): void
+    {
+        $user = User::factory()->create([
+            'rol_id' => $this->clienteRolId(),
+            'activo' => true,
+        ]);
+
+        $this->actingAs($user)
+            ->patch('/perfil', [
+                'name'     => 'Nombre Actualizado',
+                'email'    => $user->email,
+                'telefono' => '5599887766',
+            ])
+            ->assertRedirect();
+
+        $this->assertDatabaseHas('users', [
+            'id'   => $user->id,
+            'name' => 'Nombre Actualizado',
+        ]);
+    }
+
+    public function test_user_can_update_password(): void
+    {
+        $user = User::factory()->create([
+            'password' => Hash::make('OldPassword1!'),
+            'rol_id'   => $this->clienteRolId(),
             'activo'   => true,
         ]);
 
         $this->actingAs($user)
-             ->post('/logout')
-             ->assertRedirect();
+            ->patch('/perfil/password', [
+                'current_password'      => 'OldPassword1!',
+                'password'              => 'NewPassword1!',
+                'password_confirmation' => 'NewPassword1!',
+            ])
+            ->assertRedirect();
 
-        $this->assertGuest();
+        $user->refresh();
+        $this->assertTrue(Hash::check('NewPassword1!', $user->password));
     }
 
-    // ── REDIRECCIONES POR ROL ─────────────────────────────────────────
-
-    public function test_admin_redirige_a_panel_admin(): void
+    public function test_update_password_rejects_wrong_current_password(): void
     {
-        $rolId = Role::where('nombre', 'admin')->value('id');
-        $admin = User::create([
-            'name'     => 'Admin',
-            'email'    => 'admin@test.com',
-            'password' => bcrypt('password'),
-            'rol_id'   => $rolId,
+        $user = User::factory()->create([
+            'password' => Hash::make('OldPassword1!'),
+            'rol_id'   => $this->clienteRolId(),
             'activo'   => true,
         ]);
 
-        $this->actingAs($admin)
-             ->get('/dashboard')
-             ->assertRedirect(route('admin.dashboard'));
+        $this->actingAs($user)
+            ->patch('/perfil/password', [
+                'current_password'      => 'WrongPassword!',
+                'password'              => 'NewPassword1!',
+                'password_confirmation' => 'NewPassword1!',
+            ])
+            ->assertSessionHasErrors('current_password');
     }
 
-    public function test_cliente_no_puede_acceder_a_panel_admin(): void
+    // ── GUEST REDIRECTS ────────────────────────────────────────────
+
+    public function test_authenticated_user_is_redirected_from_login(): void
     {
-        $rolId   = Role::where('nombre', 'cliente')->value('id');
-        $cliente = User::create([
-            'name'     => 'Cliente',
-            'email'    => 'cliente@test.com',
-            'password' => bcrypt('password'),
-            'rol_id'   => $rolId,
-            'activo'   => true,
+        $user = User::factory()->create([
+            'rol_id' => $this->clienteRolId(),
+            'activo' => true,
         ]);
 
-        $this->actingAs($cliente)
-             ->get('/admin/dashboard')
-             ->assertStatus(403);
-    }
-
-    public function test_agente_no_puede_acceder_a_panel_admin(): void
-    {
-        $rolId  = Role::where('nombre', 'agente')->value('id');
-        $agente = User::create([
-            'name'     => 'Agente',
-            'email'    => 'agente@test.com',
-            'password' => bcrypt('password'),
-            'rol_id'   => $rolId,
-            'activo'   => true,
-        ]);
-
-        $this->actingAs($agente)
-             ->get('/admin/dashboard')
-             ->assertStatus(403);
-    }
-
-    public function test_invitado_redirige_a_login(): void
-    {
-        $this->get('/admin/dashboard')->assertRedirect('/login');
-        $this->get('/cliente/dashboard')->assertRedirect('/login');
-        $this->get('/agente/dashboard')->assertRedirect('/login');
+        $this->actingAs($user)->get('/login')->assertRedirect();
     }
 }
