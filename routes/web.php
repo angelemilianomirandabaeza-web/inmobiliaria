@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminAgenteController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Api\AutocompleteController;
 use App\Http\Controllers\Api\QuickViewController;
@@ -101,4 +102,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::patch('/propiedades/{propiedad}/aprobar', [PropiedadAprobacionController::class, 'aprobar'])->name('propiedades.aprobar');
     Route::delete('/propiedades/{propiedad}/rechazar', [PropiedadAprobacionController::class, 'rechazar'])->name('propiedades.rechazar');
     Route::delete('/propiedades/{propiedad}', [PropiedadAprobacionController::class, 'destroy'])->name('propiedades.destroy');
+
+    // Gestión de agentes
+    Route::resource('agentes', AdminAgenteController::class)->only(['index', 'create', 'store', 'edit', 'update', 'destroy']);
+    Route::patch('/agentes/{agente}/toggle-activo', [AdminAgenteController::class, 'toggleActivo'])->name('agentes.toggle-activo');
 });
