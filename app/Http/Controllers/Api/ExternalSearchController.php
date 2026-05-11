@@ -34,6 +34,18 @@ class ExternalSearchController extends Controller
                 ),
             ]);
 
+            // Log de diagnostico por fuente
+            foreach (['mercadolibre', 'lamudi', 'vivanuncios', 'google'] as $src) {
+                $r = $responses[$src] ?? null;
+                if ($r instanceof \Throwable) {
+                    Log::info("ExternalSearch [$src] EXCEPTION: " . get_class($r) . ' - ' . $r->getMessage());
+                } elseif ($r) {
+                    Log::info("ExternalSearch [$src] HTTP " . $r->status() . ' body=' . substr($r->body(), 0, 200));
+                } else {
+                    Log::info("ExternalSearch [$src] NULL response");
+                }
+            }
+
             $fuentes[] = $this->parseMercadoLibre($responses['mercadolibre'] ?? null);
             $fuentes[] = $this->parseLamudi($responses['lamudi'] ?? null);
             $fuentes[] = $this->parseVivanuncios($responses['vivanuncios'] ?? null);
